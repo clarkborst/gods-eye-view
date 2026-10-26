@@ -424,8 +424,7 @@ body.cockpit-mode:has(#left-panel-stack > .panel-collapsible:not(.collapsed))
   right: auto;
   left: calc(1px + (var(--curve) * (var(--cockpit-keyhole-radius) - 20px)));
   flex-direction: row-reverse;
-  /* Speed rises toward the top of the tape; altitude intentionally runs the
-     opposite way on the mirrored right-hand ruler. */
+  /* Both tapes rise toward the top, mirrored around the keyhole. */
   top: calc(50% - (var(--slot) * 8%));
   transform: translateY(-50%) rotateZ(calc(var(--slot) * 1.7deg));
   transform-origin: left center;

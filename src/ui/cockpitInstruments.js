@@ -43,6 +43,56 @@ const LOCALIZED_EMERGENCY = Object.freeze({
       : t('ADS-B EMERGENCY · {status}', { status: emergencyLabel(parts) }),
 });
 
+const tapeKeys = new WeakMap();
+
+/** Keep a DOM node attached to a physical tick, rather than its row index.
+ * Retained ticks keep their CSS transitions across interval boundaries. Only
+ * entering ticks get fresh nodes, so recycling never animates across the tape.
+ * Signed keys keep the clamped zero labels near the surface distinct.
+ */
+export function updateCockpitTape(elements, ticks, formatValue) {
+  if (!elements.length) return;
+  if (!ticks.length) {
+    for (const element of elements) element.hidden = true;
+    return;
+  }
+  const keyOf = (tick) => `${tick.stepFt ?? tick.stepKt}:${tick.key}`;
+  const wanted = new Set(ticks.map(keyOf));
+  const existing = new Map(
+    elements.map((element) => [tapeKeys.get(element), element]),
+  );
+  const spare = elements.filter(
+    (element) => !wanted.has(tapeKeys.get(element)),
+  );
+  const next = ticks.map((tick) => {
+    const key = keyOf(tick);
+    let element = existing.get(key);
+    if (!element) {
+      element = spare.shift();
+      // A fresh element has no prior computed position to transition from.
+      // Avoid forced layout reads, frame callbacks and cross-tape animations.
+      if (tapeKeys.has(element)) {
+        const replacement = element.cloneNode(true);
+        element.replaceWith(replacement);
+        element = replacement;
+      }
+    }
+    element.hidden = false;
+    tapeKeys.set(element, key);
+    element.style.setProperty('--slot', tick.slot.toFixed(4));
+    element.style.setProperty('--depth', tick.depth.toFixed(4));
+    element.style.setProperty(
+      '--curve',
+      altitudeRulerCurveInset(tick.slot).toFixed(5),
+    );
+    element.classList.toggle('major', tick.major);
+    const label = element.querySelector('b');
+    if (label) label.textContent = formatValue(tick.valueFt ?? tick.valueKt);
+    return element;
+  });
+  elements.splice(0, elements.length, ...next);
+}
+
 export function updateHud(
   info,
   nowMs = performance.now(),
@@ -65,20 +115,7 @@ export function updateHud(
   if (this.speedRimValue)
     this.speedRimValue.textContent = formatSpeedRulerTick(speedKt);
   const speedTicks = speedRulerTicks(speedKt, this.speedRimTicks.length);
-  this.speedRimTicks.forEach((element, index) => {
-    const tick = speedTicks[index];
-    element.hidden = !tick;
-    if (!tick) return;
-    element.style.setProperty('--slot', tick.slot.toFixed(4));
-    element.style.setProperty('--depth', tick.depth.toFixed(4));
-    element.style.setProperty(
-      '--curve',
-      altitudeRulerCurveInset(tick.slot).toFixed(5),
-    );
-    element.classList.toggle('major', tick.major);
-    const label = element.querySelector('b');
-    if (label) label.textContent = formatSpeedRulerTick(tick.valueKt);
-  });
+  updateCockpitTape(this.speedRimTicks, speedTicks, formatSpeedRulerTick);
   const altitudeFt = cockpitAltitudeDisplayFt(info.altitudeM, info.onGround);
   if (this.altitude) {
     const displayedAltitudeFt = Number.isFinite(altitudeFt)
@@ -102,20 +139,11 @@ export function updateHud(
     altitudeFt,
     this.altitudeRimTicks.length,
   );
-  this.altitudeRimTicks.forEach((element, index) => {
-    const tick = altitudeTicks[index];
-    element.hidden = !tick;
-    if (!tick) return;
-    element.style.setProperty('--slot', tick.slot.toFixed(4));
-    element.style.setProperty('--depth', tick.depth.toFixed(4));
-    element.style.setProperty(
-      '--curve',
-      altitudeRulerCurveInset(tick.slot).toFixed(5),
-    );
-    element.classList.toggle('major', tick.major);
-    const label = element.querySelector('b');
-    if (label) label.textContent = formatAltitudeRulerTick(tick.valueFt);
-  });
+  updateCockpitTape(
+    this.altitudeRimTicks,
+    altitudeTicks,
+    formatAltitudeRulerTick,
+  );
   setCockpitRollingValue(
     this.headingValue,
     String(Math.round(heading) % 360).padStart(3, '0'),

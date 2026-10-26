@@ -315,6 +315,57 @@ try {
           )
         );
       });
+      const boundaries = await page.evaluate(() => {
+        const view = window.__godsEyeView.styleManager.cockpitView;
+        const info = view.readAircraftInfo();
+        const results = [];
+        for (const [kind, before, after, label] of [
+          ['altitude', 34999, 35001, '35000'],
+          ['speed', 239.9, 240.1, '240'],
+        ]) {
+          const sample = (value) =>
+            view.updateHud(
+              {
+                ...info,
+                altitudeM:
+                  kind === 'altitude' ? value / 3.28084 : info.altitudeM,
+                velocityMps:
+                  kind === 'speed' ? value / 1.94384 : info.velocityMps,
+              },
+              performance.now(),
+              true,
+            );
+          sample(before);
+          const elements =
+            kind === 'altitude' ? view.altitudeRimTicks : view.speedRimTicks;
+          const tick = elements.find(
+            (element) => element.querySelector('b').textContent === label,
+          );
+          const slot = Number(tick.style.getPropertyValue('--slot'));
+          const retained = [...elements];
+          sample(after);
+          results.push({
+            kind,
+            sameNode: elements.includes(tick) && tick.isConnected,
+            sameLabel: tick.querySelector('b').textContent === label,
+            downward: Number(tick.style.getPropertyValue('--slot')) < slot,
+            retained: elements.filter((element) => retained.includes(element))
+              .length,
+          });
+        }
+        view.updateHud(info, performance.now(), true);
+        return results;
+      });
+      for (const result of boundaries) {
+        assert.equal(
+          result.sameNode,
+          true,
+          `${result.kind} keeps the same physical tick across its boundary`,
+        );
+        assert.equal(result.sameLabel, true);
+        assert.equal(result.downward, true);
+        assert.equal(result.retained, 8, 'only the edge tick is recycled');
+      }
       const tape = await page.evaluate(() => {
         const app = window.__godsEyeView;
         const view = app.styleManager.cockpitView;
@@ -544,7 +595,7 @@ try {
     'simulation Context must never request live ADS-B/AIS traffic',
   );
   console.log(
-    'PASS: canvas follow and double-click reset, altitude tape direction, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
+    'PASS: canvas follow and double-click reset, continuous speed/altitude tapes, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
   );
 } finally {
   await browser.close();
