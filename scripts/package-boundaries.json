@@ -2584,7 +2584,10 @@
       "src/layers/simulatedTraffic/index.js",
       "src/layers/simulatedTraffic/playback.js",
       "src/layers/simulatedTraffic/mode.js",
-      "src/layers/simulatedTraffic/scenarios.js"
+      "src/layers/simulatedTraffic/scenarios.js",
+      "src/layers/simulatedTraffic/contacts.js",
+      "src/layers/simulatedTraffic/icons.js",
+      "src/app/layers/simulationContacts.js"
     ],
     "external": [
       "hls.js",
@@ -3157,7 +3160,10 @@
       "src/layers/simulatedTraffic/index.js",
       "src/layers/simulatedTraffic/playback.js",
       "src/layers/simulatedTraffic/mode.js",
-      "src/layers/simulatedTraffic/scenarios.js"
+      "src/layers/simulatedTraffic/scenarios.js",
+      "src/layers/simulatedTraffic/contacts.js",
+      "src/layers/simulatedTraffic/icons.js",
+      "src/app/layers/simulationContacts.js"
     ],
     "external": [
       "hls.js",

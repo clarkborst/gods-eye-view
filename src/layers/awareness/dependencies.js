@@ -23,6 +23,8 @@ export function createDependencies({
   }
 
   async function enableDependencies(activationId = layerState.activationId) {
+    // Simulation supplies the aircraft slot locally; never start live feeds.
+    if (services.simulation?.simulation.getState().enabled) return;
     const aircraftPending = [];
     for (const layerId of DEPENDENCIES) {
       if (!layerState.enabled) return;

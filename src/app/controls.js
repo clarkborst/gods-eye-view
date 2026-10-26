@@ -23,6 +23,7 @@ export function createApplicationControls({
       fetchRegionalBrief: (...args) =>
         operations.requests.regional.getBrief(...args),
       ...catalogControlServices(catalog),
+      ...catalog.contextContactServices,
     },
     requestServices: operations.requests,
     mapStackController,

@@ -2,6 +2,7 @@ import * as Cesium from 'cesium';
 import { createSimulationPlayback } from './playback.js';
 import { createSimulationMode } from './mode.js';
 import { SIMULATION_SCENARIOS, entityCategory } from './scenarios.js';
+import { createSimulationContacts } from './contacts.js';
 
 const msg = (text) => text;
 
@@ -14,6 +15,7 @@ export function createSimulatedTrafficLayer({
 }) {
   let viewer = null;
   let mode = null;
+  let dataManager = null;
   let enabled = false;
   let loading = false;
   let error = null;
@@ -30,6 +32,16 @@ export function createSimulatedTrafficLayer({
     for (const listener of listeners) listener(api.getState());
   };
   const playback = createSimulationPlayback({ render, onChange: notify });
+  const contacts = createSimulationContacts({
+    getViewer: () => viewer,
+    getEntities: entities,
+    isActive: () => enabled,
+    isVisible: (entity) =>
+      categoryVisibility.get(
+        entityCategory(entity, viewer?.clock.currentTime),
+      ) !== false,
+    render,
+  });
   const removeSource = (source) => {
     if (!viewer?.dataSources.remove(source, true)) source.destroy?.();
   };
@@ -43,6 +55,7 @@ export function createSimulatedTrafficLayer({
         viewer.trackedEntity = undefined;
     }
     render.governorRequestRender('simulation-visibility');
+    if (!contacts.getTrackedInfo()) contacts.stopTracking();
     notify();
   };
   const api = {
@@ -80,7 +93,9 @@ export function createSimulatedTrafficLayer({
           visible: categoryVisibility.get(id) !== false,
         })),
         vehicles,
-        trackedId: viewer?.trackedEntity?.id || '',
+        trackedId:
+          contacts.getTrackedInfo()?.id || viewer?.trackedEntity?.id || '',
+        ...contacts.getParams(),
       };
     },
     subscribe(listener) {
@@ -140,6 +155,7 @@ export function createSimulatedTrafficLayer({
               entity.orientation = new Cesium.VelocityOrientationProperty(
                 entity.position,
               );
+            contacts.style(entity);
           }
         }
         if (generation !== epoch || !enabled) return false;
@@ -171,6 +187,7 @@ export function createSimulatedTrafficLayer({
           if (generation !== epoch || !enabled) return false;
         }
         // Commit as a unit: a failed replacement leaves the old scenario usable.
+        contacts.stopTracking();
         viewer.trackedEntity = undefined;
         for (const data of sources) removeSource(data);
         sources = staged.splice(0);
@@ -179,6 +196,10 @@ export function createSimulatedTrafficLayer({
         playback.enter(viewer, start, stop);
         for (const data of sources) data.show = true;
         applyVisibility();
+        if (dataManager?.isEnabled('military-awareness')) {
+          const first = contacts.getAllPositions(1)[0];
+          if (first) contacts.trackById(first.id);
+        }
         return true;
       } catch (failure) {
         if (generation === epoch && !current.signal.aborted) {
@@ -207,6 +228,11 @@ export function createSimulatedTrafficLayer({
     },
     track(id) {
       if (!enabled || loading) return;
+      if (contacts.trackById(id, { origin: 'user' })) {
+        notify();
+        return;
+      }
+      contacts.stopTracking();
       const entity = entities().find((candidate) => candidate.id === id);
       if (entity?.show && entity.isAvailable(viewer.clock.currentTime))
         viewer.trackedEntity = entity;
@@ -216,11 +242,16 @@ export function createSimulatedTrafficLayer({
     },
     overview() {
       if (!enabled || !viewer) return;
+      contacts.stopTracking();
       viewer.trackedEntity = undefined;
       viewer.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(4.437, 51.956, 14000),
         duration: 1.2,
       });
+    },
+    setParams(params) {
+      contacts.setParams(params);
+      notify();
     },
   };
   const layer = {
@@ -230,6 +261,7 @@ export function createSimulatedTrafficLayer({
     source: 'CZML · SIMULATION',
     updateInterval: -1,
     attachDataManager(manager) {
+      dataManager = manager;
       mode = createSimulationMode(manager);
     },
     init(target) {
@@ -242,6 +274,7 @@ export function createSimulatedTrafficLayer({
       enabled = true;
       await api.loadScenario(selectedScenario, { signal });
       signal?.throwIfAborted();
+      contacts.attach();
       picking?.registerPickOwner(layer.id, (id) =>
         entities().some((entity) => entity.id === id),
       );
@@ -251,6 +284,7 @@ export function createSimulatedTrafficLayer({
       return true;
     },
     async disable() {
+      contacts.detach();
       enabled = false;
       ++generation;
       request?.abort();
@@ -268,6 +302,7 @@ export function createSimulatedTrafficLayer({
       sources = [];
       await mode?.destroy();
       mode = null;
+      dataManager = null;
       playback.destroy();
       listeners.clear();
       viewer = null;
@@ -284,6 +319,7 @@ export function createSimulatedTrafficLayer({
       return { simulation: api, chips: [] };
     },
     simulation: api,
+    contacts,
   };
   return layer;
 }

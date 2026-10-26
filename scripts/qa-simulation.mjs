@@ -18,6 +18,15 @@ try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 1000 });
   page.on('pageerror', (error) => errors.push(error.message));
+  const liveRequests = [];
+  let checkingSimulation = false;
+  page.on('request', (request) => {
+    if (
+      checkingSimulation &&
+      /\/api\/(?:flights|military|vessels|adsbdb)(?:[/?]|$)/.test(request.url())
+    )
+      liveRequests.push(request.url());
+  });
   await page.goto(`${url}/?welcome=0`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__godsEyeView?.dataManager, {
     timeout: 60_000,
@@ -49,6 +58,7 @@ try {
     );
   assert.equal((await state()).vehicles.length, 6);
   assert.equal((await state()).playing, false);
+  checkingSimulation = true;
   assert.deepEqual(
     (await state()).categories.map((c) => c.id),
     ['aircraft', 'drone', 'ground-robot'],
@@ -106,7 +116,107 @@ try {
     'sim:rotterdam:airliner-departure',
   );
   assert.equal(
-    await page.evaluate(() => window.__godsEyeView.viewer.trackedEntity?.id),
+    await page.evaluate(
+      () => window.__godsEyeView.viewer.trackedEntity?.gevSimulationId,
+    ),
+    'sim:rotterdam:airliner-departure',
+  );
+  await page.evaluate(() =>
+    window.__godsEyeView.styleManager.setPanelCollapsed(
+      'global-context-panel',
+      false,
+    ),
+  );
+  await page.click('#global-context-flights-btn');
+  await page.waitForFunction(
+    () =>
+      window.__godsEyeView.styleManager.getContextModeState().mode ===
+        'flights' &&
+      !window.__godsEyeView.styleManager.getContextModeState().changing,
+  );
+  const isolation = await page.evaluate(() => {
+    const app = window.__godsEyeView;
+    return {
+      simulation: app.dataManager.isEnabled('simulated-traffic'),
+      live: ['flights', 'military', 'local-adsb', 'ais-live-vessels'].filter(
+        (id) => app.dataManager.isEnabled(id),
+      ),
+      snapshot: app.dataManager.layers
+        .get('military-awareness')
+        .module.getContextSnapshot(),
+    };
+  });
+  assert.equal(isolation.simulation, true);
+  assert.deepEqual(isolation.live, []);
+  assert.ok(isolation.snapshot);
+  for (const id of [
+    'sim:rotterdam:airliner-departure',
+    'sim:rotterdam:inspection-uav',
+  ]) {
+    await page.select(
+      `${panel} select[aria-label="Follow simulated vehicle"]`,
+      id,
+    );
+    await page.waitForFunction(
+      () => !document.getElementById('cockpit-entry').hidden,
+    );
+    await page.click('#cockpit-entry');
+    await page.waitForFunction(
+      () => window.__godsEyeView.styleManager.cockpitView.active,
+    );
+    const cockpit = await page.evaluate(() => {
+      const view = window.__godsEyeView.styleManager.cockpitView;
+      return {
+        id: view.readAircraftInfo()?.icao24,
+        simulated: view.readAircraftInfo()?.simulated,
+      };
+    });
+    assert.deepEqual(cockpit, { id, simulated: true });
+    await page.waitForFunction(
+      () =>
+        document.getElementById('cockpit-clock').textContent ===
+        window.__godsEyeView.styleManager.cockpitView
+          .readAircraftInfo()
+          .simulationTime.slice(11, 19) +
+          'Z',
+    );
+    assert.equal(
+      await page.$eval(
+        '[data-context-cohort="military"]',
+        (node) => node.hidden,
+      ),
+      true,
+    );
+    assert.equal(
+      await page.$eval(
+        '[data-context-cohort="flights"] small',
+        (node) => node.textContent,
+      ),
+      'CZML · SIMULATION',
+    );
+    const anchorBefore = await page.evaluate(() => {
+      const a = window.__godsEyeView.styleManager.cockpitView.cockpitAnchor;
+      return [a.x, a.y, a.z];
+    });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const anchorAfter = await page.evaluate(() => {
+      const a = window.__godsEyeView.styleManager.cockpitView.cockpitAnchor;
+      return [a.x, a.y, a.z];
+    });
+    assert.deepEqual(
+      anchorAfter,
+      anchorBefore,
+      'a paused replay must not coast in cockpit',
+    );
+    await page.evaluate(() =>
+      window.__godsEyeView.styleManager.cockpitView.exit(),
+    );
+  }
+  await page.evaluate(() =>
+    window.__godsEyeView.styleManager.setContextMode(null),
+  );
+  await page.select(
+    `${panel} select[aria-label="Follow simulated vehicle"]`,
     'sim:rotterdam:airliner-departure',
   );
   await page.click(`${panel} .simulation-categories label:first-child input`);
@@ -160,6 +270,7 @@ try {
   await mkdir('qa-artifacts/simulation', { recursive: true });
   await page.screenshot({ path: 'qa-artifacts/simulation/rotterdam.png' });
   await page.click(`${row} .data-toggle-btn`);
+  checkingSimulation = false;
   await page.waitForFunction(
     () => !window.__godsEyeView.dataManager.isEnabled('simulated-traffic'),
   );
@@ -203,8 +314,13 @@ try {
     holds: [],
   });
   assert.deepEqual(errors, []);
+  assert.deepEqual(
+    liveRequests,
+    [],
+    'simulation Context must never request live ADS-B/AIS traffic',
+  );
   console.log(
-    'PASS: real CZML loading, aircraft/drone/ground categories, UI seeking, pause, reverse, fast-forward, tracking, filters, scenario replacement, clock restoration and active-playback teardown',
+    'PASS: replay controls, icons, aircraft/drone cockpit entry, paused cockpit, CZML-only Context with zero live traffic requests, scenario replacement, clock restoration and teardown',
   );
 } finally {
   await browser.close();

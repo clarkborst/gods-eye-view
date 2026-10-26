@@ -18,6 +18,25 @@ export function createQueries({ state: layerState, services, parts, source }) {
   const militaryFlightsLayer = services.military;
 
   function sourceState(layerId) {
+    if (services.simulation?.simulation.getState().enabled) {
+      // Other Context slots are known-empty local simulation cohorts, not
+      // unavailable live feeds with retained ADS-B/AIS records.
+      const available = true;
+      return {
+        available,
+        enabled: available,
+        stale: false,
+        stats: {
+          ...services.simulation.getStats(),
+          count:
+            layerId === 'flights'
+              ? services.flights.getAllPositions().length
+              : 0,
+          source: 'CZML · SIMULATION',
+          lastUpdate: services.simulation.simulation.getState().current,
+        },
+      };
+    }
     const lifecycle =
       layerState.dataManager?.getLayerLifecycleState?.(layerId) || null;
     const enabled =

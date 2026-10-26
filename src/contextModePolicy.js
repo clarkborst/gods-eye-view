@@ -429,12 +429,13 @@ export function cockpitEntryAllowed({
   contextModeChanging,
   flightsEnabled,
   militaryEnabled,
+  simulationEnabled = false,
 }) {
   return (
     contextMode === 'flights' &&
     !contextModeChanging &&
-    Boolean(flightsEnabled) &&
-    Boolean(militaryEnabled)
+    (Boolean(simulationEnabled) ||
+      (Boolean(flightsEnabled) && Boolean(militaryEnabled)))
   );
 }
 

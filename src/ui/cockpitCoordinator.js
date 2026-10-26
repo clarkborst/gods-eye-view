@@ -81,6 +81,8 @@ export class CockpitCoordinator {
           contextModeChanging: this._contextModeChanging,
           flightsEnabled: !!this._dataManager?.isEnabled('flights'),
           militaryEnabled: !!this._dataManager?.isEnabled('military'),
+          simulationEnabled:
+            !!this._dataManager?.isEnabled('simulated-traffic'),
         }),
       onEntered: () => this.enterPanels(),
       onExited: () => this.exitPanels(),

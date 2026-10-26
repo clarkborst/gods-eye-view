@@ -252,6 +252,7 @@ export function _handleContextLayerChange(change) {
       contextModeChanging: this._contextModeChanging,
       flightsEnabled: !!this._dataManager?.isEnabled('flights'),
       militaryEnabled: !!this._dataManager?.isEnabled('military'),
+      simulationEnabled: !!this._dataManager?.isEnabled('simulated-traffic'),
     })
   ) {
     this.cockpitView.exit({ restoreTracking: false });

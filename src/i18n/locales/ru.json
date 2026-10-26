@@ -3050,5 +3050,7 @@
   "View Rotterdam Airport": "Показать аэропорт Роттердама",
   "Loading scenario…": "Загрузка сценария…",
   "Scenario ready · times shown in UTC": "Сценарий готов · время в UTC",
-  "No scenario loaded": "Сценарий не загружен"
+  "No scenario loaded": "Сценарий не загружен",
+  "Vehicle labels": "Подписи объектов",
+  "Vehicle icon size": "Размер значков объектов"
 }

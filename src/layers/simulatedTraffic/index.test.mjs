@@ -5,6 +5,7 @@ import {
   Clock,
   ClockStep,
   DataSourceCollection,
+  EntityCollection,
   JulianDate,
   Cartesian3,
 } from 'cesium';
@@ -29,6 +30,7 @@ function fixture(t, fetchImpl) {
       shouldAnimate: false,
     }),
     dataSources: new DataSourceCollection(),
+    entities: new EntityCollection(),
     camera: { flyTo() {} },
   };
   const layer = createSimulatedTrafficLayer({
@@ -74,7 +76,8 @@ test('real CZML examples load as one paused scenario with dynamic aircraft, dron
   const after = aircraft.position.getValue(f.viewer.clock.currentTime);
   assert.ok(Cartesian3.distance(before, after) > 10000);
   f.api.track(aircraft.id);
-  assert.equal(f.viewer.trackedEntity, aircraft);
+  assert.equal(f.viewer.trackedEntity.position, aircraft.position);
+  assert.equal(f.viewer.trackedEntity.gevSimulationId, aircraft.id);
   f.api.setCategoryVisible('aircraft', false);
   assert.equal(aircraft.show, false);
   assert.equal(f.viewer.trackedEntity, undefined);
@@ -195,4 +198,45 @@ test('malformed documents and duplicate IDs fail without taking over the viewer 
   );
   assert.equal(duplicate.viewer.dataSources.length, 0);
   assert.equal(duplicate.api.getState().active, false);
+});
+
+test('aircraft use the shared silhouettes, drones use a distinct quadrotor and ground robots stay generic', async (t) => {
+  const { aircraftIcon } = await import('../../data/aircraftIcons.js');
+  const { DRONE_ICON } = await import('./icons.js');
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  const time = f.viewer.clock.currentTime;
+  const aircraft = f.viewer.dataSources.get(0).entities.values;
+  const drones = f.viewer.dataSources.get(1).entities.values;
+  assert.equal(
+    aircraft[0].billboard.image.getValue(time),
+    aircraftIcon('airliner'),
+  );
+  assert.equal(
+    aircraft[2].billboard.image.getValue(time),
+    aircraftIcon('bizjet'),
+  );
+  assert.equal(drones[0].billboard.image.getValue(time), DRONE_ICON);
+  assert.equal(aircraft[0].point, undefined);
+  assert.ok(f.viewer.dataSources.get(2).entities.values[0].point);
+  f.api.setParams({ labels: false, iconScale: 2 });
+  assert.equal(drones[0].label.show.getValue(time), false);
+  assert.equal(drones[0].billboard.scale.getValue(time), 2);
+  f.api.seek(300);
+  assert.equal(f.layer.contacts.getAllPositions().length, 5);
+  assert.equal(f.layer.contacts.trackById(drones[0].id), true);
+  const tracked = f.layer.contacts.getTrackedInfo();
+  assert.equal(tracked.category, 'drone');
+  assert.equal(tracked.simulated, true);
+  assert.equal(tracked.simulationTime, '2026-10-26T10:05:00Z');
+  assert.ok(tracked.velocityMps >= 0);
+  const proxy = f.viewer.trackedEntity;
+  assert.equal(f.viewer.entities.contains(proxy), true);
+  proxy.show = false; // Cockpit takes ownership and hides its source contact.
+  assert.equal(drones[0].billboard.show.getValue(time), false);
+  assert.equal(f.layer.contacts.getTrackedInfo().icao24, drones[0].id);
+  f.api.seek(500);
+  assert.notEqual(f.layer.contacts.getTrackedInfo().latitude, tracked.latitude);
+  await f.layer.disable();
+  assert.equal(f.viewer.entities.contains(proxy), false);
 });

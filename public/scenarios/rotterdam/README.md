@@ -61,3 +61,21 @@ scenario replacement and clock restoration. Evidence is written to the ignored
 `qa-artifacts/simulation/` directory. Unit tests under
 `src/layers/simulatedTraffic/` cover clock boundaries, cleanup, replacement races,
 mode restoration and approximate speed envelopes for the example trajectories.
+
+## Aircraft and drone Context / cockpit controls
+
+Aircraft use the existing class-specific aircraft silhouettes. Set the optional
+`properties.aircraftClass` to a supported class such as `airliner`, `bizjet`,
+`light`, or `helicopter`; otherwise the layer uses the existing type-code
+classifier. A `drone` uses the dedicated quadrotor silhouette. Other categories
+keep their authored CZML graphics. The replay panel includes label visibility and
+contact icon-size controls, and clicking an aircraft/drone selects its normal
+tracked readout and follow camera.
+
+With simulation enabled, open **Context → Contacts**, select an aircraft or aerial
+drone, then choose **Cockpit**. Context routes its aircraft interface to CZML only:
+live ADS-B/AIS sources are neither started nor read, including their retained
+caches. Aircraft and drones support the usual Context focus and previous/next
+navigation. Ground robots remain generic map contacts and do not offer an aerial
+cockpit. The cockpit clock and position follow replay time; paused playback does
+not coast forward, and seeks and reverse playback use sampled CZML positions.

@@ -136,7 +136,8 @@ export function updateHud(
     }
   }
   if (this.clock)
-    this.clock.textContent = new Date().toISOString().slice(11, 19) + 'Z';
+    this.clock.textContent =
+      (info.simulationTime || new Date().toISOString()).slice(11, 19) + 'Z';
   if (this.position) {
     const lat = Number.isFinite(info.latitude)
       ? formatCockpitCoordinate(info.latitude, 'N', 'S')
@@ -153,9 +154,17 @@ export function updateHud(
         ? t('SURFACE FALLBACK')
         : info.stale
           ? t('STALE FEED')
-          : t('LIVE TRACK');
-    const aircraftClass =
-      info.layerId === 'military' ? t('MILITARY') : t('COMMERCIAL');
+          : info.simulated
+            ? t('Simulated Traffic').toUpperCase()
+            : t('LIVE TRACK');
+    const aircraftClass = info.simulated
+      ? (info.category === 'drone'
+          ? t('Aerial drones')
+          : t('Aircraft')
+        ).toUpperCase()
+      : info.layerId === 'military'
+        ? t('MILITARY')
+        : t('COMMERCIAL');
     const emergency = formatCockpitEmergency(
       info.emergency,
       LOCALIZED_EMERGENCY,

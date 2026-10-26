@@ -368,8 +368,9 @@ export class StyleManager extends ShellFacade {
     this._cockpitCoordinator = new CockpitCoordinator({
       viewer,
       services: {
-        flightsLayer: services.flightsLayer,
-        militaryFlightsLayer: services.militaryFlightsLayer,
+        flightsLayer: services.contextFlightsLayer || services.flightsLayer,
+        militaryFlightsLayer:
+          services.contextMilitaryFlightsLayer || services.militaryFlightsLayer,
         isTr3b: services.isTr3b,
         toggleTr3b: services.toggleTr3b,
         militaryAwarenessLayer: services.militaryAwarenessLayer,

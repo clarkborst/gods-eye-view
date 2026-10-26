@@ -21,7 +21,8 @@
       "simulated": true,
       "airport": "EHRD",
       "altitudeDatum": "WGS84 ellipsoid",
-      "scenario": "rotterdam-demo"
+      "scenario": "rotterdam-demo",
+      "aircraftClass": "airliner"
     },
     "position": {
       "epoch": "2026-10-26T10:00:00Z",
@@ -174,7 +175,8 @@
       "simulated": true,
       "airport": "EHRD",
       "altitudeDatum": "WGS84 ellipsoid",
-      "scenario": "rotterdam-demo"
+      "scenario": "rotterdam-demo",
+      "aircraftClass": "airliner"
     },
     "position": {
       "epoch": "2026-10-26T10:00:00Z",
@@ -327,7 +329,8 @@
       "simulated": true,
       "airport": "EHRD",
       "altitudeDatum": "WGS84 ellipsoid",
-      "scenario": "rotterdam-demo"
+      "scenario": "rotterdam-demo",
+      "aircraftClass": "bizjet"
     },
     "position": {
       "epoch": "2026-10-26T10:00:00Z",

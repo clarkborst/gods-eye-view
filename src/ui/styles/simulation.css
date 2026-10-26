@@ -10,6 +10,9 @@
 .simulation-panel[hidden] {
   display: none;
 }
+.cockpit-context-cohorts > [hidden] {
+  display: none;
+}
 .simulation-panel strong {
   color: #f4c76b;
   letter-spacing: 0.06em;

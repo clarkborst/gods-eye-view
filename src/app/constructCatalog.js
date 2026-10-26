@@ -34,6 +34,7 @@ import { localGeoJsonServices } from './localGeojsonServices.js';
 import { createBhoteKoshiEventLayer } from '../data/bhoteKoshiEvent.js';
 import { createBhoteKoshiLocatorLayer } from '../data/bhoteKoshiLocator.js';
 import { createApplicationSimulatedTraffic } from './layers/simulatedTraffic.js';
+import { createSimulationContactServices } from './layers/simulationContacts.js';
 
 /**
  * Session-local layers never enter share links or stored layer state: another
@@ -106,6 +107,14 @@ export function createApplicationCatalog({
     const satellites = createApplicationSatellites({
       source: sources.satellites,
     });
+    const simulationLayer = createApplicationSimulatedTraffic({ resolveAsset });
+    const contextSources = createSimulationContactServices({
+      simulation: simulationLayer,
+      flights,
+      military,
+      vessels,
+      installations,
+    });
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -114,7 +123,7 @@ export function createApplicationCatalog({
         }),
         flights,
         military,
-        createApplicationSimulatedTraffic({ resolveAsset }),
+        simulationLayer,
         createApplicationLocalAdsb({
           surface,
           enrichment: sources.flights,
@@ -146,12 +155,7 @@ export function createApplicationCatalog({
         createApplicationRecentImagery({ source: sources['recent-imagery'] }),
         vessels,
         installations,
-        createApplicationAwareness({
-          flights,
-          military,
-          vessels,
-          installations,
-        }),
+        createApplicationAwareness(contextSources),
         createWindLayer({ feed: sources.wind, clock: weatherClock }),
         createWeatherLayer({
           feed: sources.weather,
@@ -190,6 +194,11 @@ export function createApplicationCatalog({
       militaryRegistry,
       surface,
       weatherClock,
+      contextContactServices: {
+        contextFlightsLayer: contextSources.flights,
+        contextMilitaryFlightsLayer: contextSources.military,
+        simulationLayer,
+      },
     });
   } catch (error) {
     dispose();

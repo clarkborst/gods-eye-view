@@ -8,6 +8,7 @@ export function createApplicationAwareness({
   military,
   vessels,
   installations,
+  simulation,
 }) {
   return createAwarenessLayer({
     services: {
@@ -15,6 +16,7 @@ export function createApplicationAwareness({
       military,
       vessels,
       installations,
+      simulation,
       navigation,
       geometry,
       render,

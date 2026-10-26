@@ -2983,5 +2983,7 @@
   "View Rotterdam Airport": "Ver el aeropuerto de Róterdam",
   "Loading scenario…": "Cargando escenario…",
   "Scenario ready · times shown in UTC": "Escenario listo · horas en UTC",
-  "No scenario loaded": "Ningún escenario cargado"
+  "No scenario loaded": "Ningún escenario cargado",
+  "Vehicle labels": "Etiquetas de vehículos",
+  "Vehicle icon size": "Tamaño de iconos de vehículos"
 }

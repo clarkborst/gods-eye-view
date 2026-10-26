@@ -94,7 +94,7 @@ export function update() {
     ? Math.max(0, info.velocityMps)
     : 0;
 
-  if (info.stale) {
+  if (info.stale || info.simulated) {
     // A feed backoff has no authoritative velocity epoch to advance from.
     // Hold the cockpit on the exact layer-rendered position so the camera
     // cannot coast away while the icon correctly remains fixed.

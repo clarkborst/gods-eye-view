@@ -236,6 +236,12 @@ export async function _clearLayersOutsideContextMode(
   { notificationToken = null, signal = null } = {},
 ) {
   const allowed = contextAllowedLayerIds(mode);
+  if (
+    mode === 'flights' &&
+    this._dataManager.isEffectivelyEnabled('simulated-traffic')
+  ) {
+    allowed.add('simulated-traffic');
+  }
   const pending = [];
   for (const [layerId] of this._dataManager.layers || []) {
     // Effective visibility: a disallowed layer still mid-ENABLING must be

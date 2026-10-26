@@ -109,6 +109,19 @@ export function createSimulationPanel({ container, controller }) {
   const trails = checkbox(root, t('Trails'), (value) =>
     controller.setTrails(value),
   );
+  const labels = checkbox(root, t('Vehicle labels'), (value) =>
+    controller.setParams({ labels: value }),
+  );
+  const sizeLabel = make('label', root, t('Vehicle icon size'));
+  const iconSize = make('select', sizeLabel);
+  iconSize.setAttribute('aria-label', t('Vehicle icon size'));
+  for (const scale of [0.5, 1, 1.5, 2, 3]) {
+    const option = make('option', iconSize, `${scale}×`);
+    option.value = String(scale);
+  }
+  bind(iconSize, 'change', () =>
+    controller.setParams({ iconScale: Number(iconSize.value) }),
+  );
   const categories = make('div');
   categories.className = 'simulation-categories';
   const categoryInputs = new Map();
@@ -172,6 +185,8 @@ export function createSimulationPanel({ container, controller }) {
       slider,
       loop,
       trails,
+      labels,
+      iconSize,
       track,
       overview,
     ])
@@ -191,6 +206,8 @@ export function createSimulationPanel({ container, controller }) {
     speed.value = String(state.rate);
     loop.checked = state.loop;
     trails.checked = state.trails;
+    labels.checked = state.labels;
+    iconSize.value = String(state.iconScale);
     const nextCategories = state.categories
       .map((c) => `${c.id}:${c.count}`)
       .join(',');
