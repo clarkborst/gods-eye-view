@@ -41,6 +41,7 @@ export function createSimulatedTrafficLayer({
         entityCategory(entity, viewer?.clock.currentTime),
       ) !== false,
     render,
+    resolveAsset,
   });
   const removeSource = (source) => {
     if (!viewer?.dataSources.remove(source, true)) source.destroy?.();
@@ -55,6 +56,7 @@ export function createSimulatedTrafficLayer({
         viewer.trackedEntity = undefined;
     }
     render.governorRequestRender('simulation-visibility');
+    render.markDetectionSourcesChanged?.('simulation-visibility');
     if (!contacts.getTrackedInfo()) contacts.stopTracking();
     notify();
   };
@@ -317,6 +319,9 @@ export function createSimulatedTrafficLayer({
     },
     getRowControls() {
       return { simulation: api, chips: [] };
+    },
+    getDetectableObjects(options) {
+      return contacts.getDetectableObjects(options);
     },
     simulation: api,
     contacts,

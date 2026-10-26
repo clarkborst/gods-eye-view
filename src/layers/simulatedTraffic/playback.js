@@ -31,7 +31,10 @@ export function createSimulationPlayback({ render, onChange = () => {} }) {
     onChange();
     for (const listener of listeners) listener(state());
   };
-  const draw = () => render.governorRequestRender('simulation-seek');
+  const draw = () => {
+    render.markDetectionSourcesChanged?.('simulation-time');
+    render.governorRequestRender('simulation-seek');
+  };
   const syncRender = () => {
     if (saved && viewer.clock.shouldAnimate)
       render.holdContinuousRender('simulation');

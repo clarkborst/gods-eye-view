@@ -2586,7 +2586,7 @@
       "src/layers/simulatedTraffic/mode.js",
       "src/layers/simulatedTraffic/scenarios.js",
       "src/layers/simulatedTraffic/contacts.js",
-      "src/layers/simulatedTraffic/icons.js",
+      "src/layers/simulatedTraffic/models.js",
       "src/app/layers/simulationContacts.js"
     ],
     "external": [
@@ -3162,7 +3162,7 @@
       "src/layers/simulatedTraffic/mode.js",
       "src/layers/simulatedTraffic/scenarios.js",
       "src/layers/simulatedTraffic/contacts.js",
-      "src/layers/simulatedTraffic/icons.js",
+      "src/layers/simulatedTraffic/models.js",
       "src/app/layers/simulationContacts.js"
     ],
     "external": [

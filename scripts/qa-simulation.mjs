@@ -38,6 +38,8 @@ try {
       range: clock.clockRange,
       rate: clock.multiplier,
       playing: clock.shouldAnimate,
+      detection:
+        window.__godsEyeView.styleManager.getDetectionState().detectionMode,
     };
   });
   await page.click('[data-collapse-target="data-panel"]');
@@ -68,6 +70,47 @@ try {
     () =>
       window.__godsEyeView.viewer.camera.positionCartographic.height < 20000,
   );
+  await page.waitForFunction(
+    () => {
+      const ready = new Set();
+      const visit = (primitive) => {
+        if (primitive?.ready && primitive.id?.id?.startsWith('sim:rotterdam:'))
+          ready.add(primitive.id.id);
+        if (
+          typeof primitive?.get === 'function' &&
+          Number.isInteger(primitive.length)
+        ) {
+          for (let i = 0; i < primitive.length; i++) visit(primitive.get(i));
+        }
+      };
+      visit(window.__godsEyeView.viewer.scene.primitives);
+      return ready.size === 5;
+    },
+    { timeout: 60000 },
+  );
+  await page.waitForFunction(
+    () => {
+      const app = window.__godsEyeView;
+      const diagnostic = app.styleManager.getDetectionDiagnostics();
+      return (
+        diagnostic?.visibleCount > 0 &&
+        diagnostic?.demandByLayer?.['simulated-traffic'] > 0 &&
+        diagnostic?.labelsByLayer?.['simulated-traffic'] > 0
+      );
+    },
+    { timeout: 30000 },
+  );
+  const sharedIdentification = await page.evaluate(() => {
+    const app = window.__godsEyeView;
+    const layer = app.dataManager.layers.get('simulated-traffic').module;
+    return {
+      count: layer.getDetectableObjects().length,
+      mode: app.styleManager.getDetectionState().detectionMode,
+      diagnostics: app.styleManager.getDetectionDiagnostics(),
+    };
+  });
+  assert.equal(sharedIdentification.count, 6);
+  assert.notEqual(sharedIdentification.mode, 'OFF');
   const position = () =>
     page.evaluate(() => {
       const app = window.__godsEyeView;
@@ -282,6 +325,7 @@ try {
       range: clock.clockRange,
       rate: clock.multiplier,
       playing: clock.shouldAnimate,
+      detection: app.styleManager.getDetectionState().detectionMode,
       active: app.dataManager.layers
         .get('simulated-traffic')
         .module.simulation.getState().active,
@@ -320,7 +364,7 @@ try {
     'simulation Context must never request live ADS-B/AIS traffic',
   );
   console.log(
-    'PASS: replay controls, icons, aircraft/drone cockpit entry, paused cockpit, CZML-only Context with zero live traffic requests, scenario replacement, clock restoration and teardown',
+    'PASS: five ready GLB models, shared identification reticles and labels, replay controls, aircraft/drone cockpit entry, CZML-only Context, preference restoration and teardown',
   );
 } finally {
   await browser.close();

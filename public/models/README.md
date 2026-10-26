@@ -1,6 +1,6 @@
 # Bundled 3D Model Attribution
 
-The model files in this directory are third-party visual assets. They are not
+Most model files in this directory are third-party visual assets. They are not
 covered by the repository's MIT source-code license; each remains available
 under the license listed below.
 
@@ -18,3 +18,18 @@ under the license listed below.
 CC BY 4.0 permits sharing and adaptation, including commercial use, provided
 appropriate credit is retained, the license is linked, and modifications are
 identified. These credits do not imply endorsement by the original creators.
+
+## Original simulation quadcopter
+
+`quadcopter.glb` is an original procedural survey-drone model created for this
+project and covered by the repository's MIT license. It contains no third-party
+geometry, textures or external resources. It includes four motors and propellers,
+landing struts, a battery, a forward camera, an underslung survey camera and
+navigation lamps. Its rotor-swept footprint is approximately 0.92 × 0.92 metres,
+with a height of 0.32 metres.
+It follows the existing model convention: glTF +Y-up, nose toward local −X, metre
+units. Rebuild it using the installed Blender:
+
+```sh
+blender --background --threads 2 --python tools/build_simulation_quadcopter.py
+```

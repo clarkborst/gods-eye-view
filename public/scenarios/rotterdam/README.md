@@ -64,12 +64,12 @@ mode restoration and approximate speed envelopes for the example trajectories.
 
 ## Aircraft and drone Context / cockpit controls
 
-Aircraft use the existing class-specific aircraft silhouettes. Set the optional
+Aircraft use the existing class-specific aircraft GLB models. Set the optional
 `properties.aircraftClass` to a supported class such as `airliner`, `bizjet`,
 `light`, or `helicopter`; otherwise the layer uses the existing type-code
-classifier. A `drone` uses the dedicated quadrotor silhouette. Other categories
-keep their authored CZML graphics. The replay panel includes label visibility and
-contact icon-size controls, and clicking an aircraft/drone selects its normal
+classifier. A `drone` uses the original `public/models/quadcopter.glb` survey-drone
+model. Other categories keep their authored CZML graphics. The replay panel includes label visibility and
+model-size controls, and clicking an aircraft/drone selects its normal
 tracked readout and follow camera.
 
 With simulation enabled, open **Context → Contacts**, select an aircraft or aerial
@@ -79,3 +79,12 @@ caches. Aircraft and drones support the usual Context focus and previous/next
 navigation. Ground robots remain generic map contacts and do not offer an aerial
 cockpit. The cockpit clock and position follow replay time; paused playback does
 not coast forward, and seeks and reverse playback use sampled CZML positions.
+
+Replay identification uses the same detection provider, corner brackets and
+collision-managed labels as live traffic. Native CZML labels are hidden to avoid
+duplicates. Enabling simulation activates the standard detection preset; exiting
+restores the previous setting unless another active mode owns it. Manual DETECT
+changes remain available during replay. The selected vehicle uses the shared
+tracked readout, and the cockpit subject's model and reticle are hidden in first
+person. The optional CZML `properties.heading` supplies a stationary model's
+heading (degrees clockwise from north); moving models follow sampled velocity.

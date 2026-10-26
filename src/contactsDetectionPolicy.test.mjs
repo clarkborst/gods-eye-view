@@ -283,7 +283,8 @@ test('detection is wired to the Contacts transaction, and cockpit no longer touc
   );
   assert.ok(helper.length > 0, 'the Contacts detection helper is present in the UI shell source');
   assert.match(helper, /if \(this\._contextModeChanging\) return;/, 'fires at settle, not at click');
-  assert.match(helper, /active: this\._contextMode === 'flights'/);
+  assert.match(helper, /active:\s*this\._contextMode === 'flights'/);
+  assert.match(helper, /isEnabled\?\.\('simulated-traffic'\)/, 'replay shares the same scoped detection owner');
   assert.match(helper, /styleOwnsDetection:\s*!this\._detectionUserOverridden/);
   assert.doesNotMatch(
     helper.split('styleOwnsDetection')[0],
@@ -379,4 +380,43 @@ test('the share cache is healed whenever Contacts ownership changes, engine or n
     shareCacheNeedsHeal({ changed: false, hadOwnership: true, hasOwnership: true }),
     false,
   );
+});
+
+test('simulation shares the scoped detection preset, respects manual OFF, and restores the prior setting', () => {
+  let simulationEnabled = true;
+  let state = { detectionMode: 'OFF', densityPct: 25 };
+  const owner = {
+    _contextMode: null,
+    _contextModeChanging: false,
+    _dataManager: {
+      isEnabled: (id) => id === 'simulated-traffic' && simulationEnabled,
+    },
+    _contactsDetectionRestore: null,
+    activeStyle: 'normal',
+    _detectionUserOverridden: false,
+    getDetectionState: () => state,
+    _applyDetectionPreset: (preset) => {
+      state = { detectionMode: String(preset.mode).toUpperCase(), densityPct: preset.densityPct };
+    },
+    _syncDetectionUiFromEngine() {},
+    _syncShareState() {},
+  };
+  const sync = shellMethod('_syncContactsDetection');
+  sync.call(owner);
+  assert.equal(state.detectionMode, 'DENSE');
+  assert.deepEqual(owner._contactsDetectionRestore, {
+    mode: 'OFF',
+    densityPct: 25,
+  });
+  state.detectionMode = 'OFF';
+  sync.call(owner);
+  assert.equal(
+    state.detectionMode,
+    'OFF',
+    'manual OFF holds during the same replay session',
+  );
+  simulationEnabled = false;
+  sync.call(owner);
+  assert.deepEqual(state, { detectionMode: 'OFF', densityPct: 25 });
+  assert.equal(owner._contactsDetectionRestore, null);
 });

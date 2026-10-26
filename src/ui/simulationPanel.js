@@ -112,15 +112,15 @@ export function createSimulationPanel({ container, controller }) {
   const labels = checkbox(root, t('Vehicle labels'), (value) =>
     controller.setParams({ labels: value }),
   );
-  const sizeLabel = make('label', root, t('Vehicle icon size'));
+  const sizeLabel = make('label', root, t('Vehicle model size'));
   const iconSize = make('select', sizeLabel);
-  iconSize.setAttribute('aria-label', t('Vehicle icon size'));
+  iconSize.setAttribute('aria-label', t('Vehicle model size'));
   for (const scale of [0.5, 1, 1.5, 2, 3]) {
     const option = make('option', iconSize, `${scale}×`);
     option.value = String(scale);
   }
   bind(iconSize, 'change', () =>
-    controller.setParams({ iconScale: Number(iconSize.value) }),
+    controller.setParams({ modelScale: Number(iconSize.value) }),
   );
   const categories = make('div');
   categories.className = 'simulation-categories';
@@ -207,7 +207,7 @@ export function createSimulationPanel({ container, controller }) {
     loop.checked = state.loop;
     trails.checked = state.trails;
     labels.checked = state.labels;
-    iconSize.value = String(state.iconScale);
+    iconSize.value = String(state.modelScale);
     const nextCategories = state.categories
       .map((c) => `${c.id}:${c.count}`)
       .join(',');

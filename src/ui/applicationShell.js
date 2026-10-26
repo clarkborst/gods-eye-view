@@ -485,6 +485,7 @@ export class StyleManager extends ShellFacade {
         flightsLayer,
         militaryFlightsLayer,
         localAdsbLayer,
+        services.simulationLayer,
         satellitesLayer,
         cctvLayer,
         bikeshareLayer,

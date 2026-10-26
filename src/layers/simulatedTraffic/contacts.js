@@ -1,9 +1,7 @@
 import * as Cesium from 'cesium';
-import { aircraftIcon } from '../../data/aircraftIcons.js';
-import { classifyAircraft, CLASS_SCALE_2D } from '../../data/aircraftClass.js';
-import { screenProjectedRotation } from '../../data/iconOrientation.js';
+import { classifyAircraft } from '../../data/aircraftClass.js';
 import { entityCategory } from './scenarios.js';
-import { DRONE_ICON } from './icons.js';
+import { simulationModelSpec, simulationModelOrientation } from './models.js';
 
 /** Replay contact adapter for the existing aircraft/Context interface.
  * The historical `flights` identity slot is shared with Context, but every
@@ -15,6 +13,7 @@ export function createSimulationContacts({
   isActive,
   isVisible,
   render,
+  resolveAsset = (url) => url,
   eventTarget = globalThis.window,
 }) {
   let selectedId = null;
@@ -22,7 +21,8 @@ export function createSimulationContacts({
   let handler = null;
   let removeTracked = null;
   let labels = true;
-  let iconScale = 1;
+  let modelScale = 1;
+  const detectionObjects = new Map();
   const air = (entity, time) =>
     ['aircraft', 'drone'].includes(entityCategory(entity, time));
   const value = (entity, key, time) => entity.properties?.[key]?.getValue(time);
@@ -112,56 +112,72 @@ export function createSimulationContacts({
     style(entity) {
       const viewer = getViewer();
       const time = viewer.clock.currentTime;
-      if (entity.label)
-        entity.label.show = new Cesium.CallbackProperty(
-          () => labels && !(selectedId === entity.id && proxy?.show === false),
-          false,
-        );
+      // The shared identification overlay owns labels for every replay vehicle.
+      if (entity.label) entity.label.show = false;
       if (!entity.position || !air(entity, time)) return;
-      const drone = entityCategory(entity, time) === 'drone';
+      const category = entityCategory(entity, time);
       const kind =
         value(entity, 'aircraftClass', time) ||
         classifyAircraft({ typeCode: value(entity, 'typeCode', time) });
+      const spec = simulationModelSpec(category, kind);
       entity.point = undefined;
-      entity.billboard = new Cesium.BillboardGraphics({
-        image: drone ? DRONE_ICON : aircraftIcon(kind),
-        width: 26,
-        height: 26,
-        scale: new Cesium.CallbackProperty(
-          () => iconScale * (drone ? 1 : CLASS_SCALE_2D[kind] || 1),
+      entity.billboard = undefined;
+      entity.orientation = simulationModelOrientation(entity);
+      entity.model = new Cesium.ModelGraphics({
+        uri: resolveAsset(spec.url),
+        scale: new Cesium.CallbackProperty(() => modelScale, false),
+        minimumPixelSize: new Cesium.CallbackProperty(
+          () => spec.minimumPixelSize * modelScale,
+          false,
+        ),
+        maximumScale: new Cesium.CallbackProperty(
+          () => spec.maximumScale * modelScale,
           false,
         ),
         color: new Cesium.CallbackProperty(
           () =>
-            selectedId === entity.id
-              ? Cesium.Color.CYAN
-              : drone
-                ? Cesium.Color.ORANGE
-                : Cesium.Color.WHITE,
+            selectedId === entity.id ? Cesium.Color.CYAN : Cesium.Color.WHITE,
           false,
         ),
+        colorBlendMode: Cesium.ColorBlendMode.MIX,
+        colorBlendAmount: 0.2,
         show: new Cesium.CallbackProperty(
           () => !(selectedId === entity.id && proxy?.show === false),
           false,
         ),
-        rotation: new Cesium.CallbackProperty(() => {
-          const info = describe(entity);
-          return info
-            ? screenProjectedRotation(
-                viewer.scene,
-                info.position,
-                info.track,
-                0,
-              )
-            : 0;
-        }, false),
-        alignedAxis: Cesium.Cartesian3.ZERO,
       });
-      if (entity.label)
-        entity.label.show = new Cesium.CallbackProperty(
-          () => labels && !(selectedId === entity.id && proxy?.show === false),
-          false,
-        );
+    },
+    getDetectableObjects({ maxCount = Infinity } = {}) {
+      if (!isActive() || maxCount <= 0) return [];
+      const viewer = getViewer();
+      const time = viewer.clock.currentTime;
+      const result = [];
+      const retained = new Set();
+      for (const entity of getEntities()) {
+        retained.add(entity.id);
+        if (!entity.position || !isVisible(entity) || !entity.isAvailable(time))
+          continue;
+        const selected =
+          selectedId === entity.id || viewer.trackedEntity === entity;
+        if (selectedId === entity.id && proxy?.show === false) continue;
+        let object = detectionObjects.get(entity.id);
+        if (!object) {
+          object = { sourceId: entity.id, position: new Cesium.Cartesian3() };
+          detectionObjects.set(entity.id, object);
+        }
+        const position = entity.position.getValue(time, object.position);
+        if (!position) continue;
+        object.position = position;
+        object.id = labels ? entity.name || entity.id : '';
+        object.type = air(entity, time) ? 'AIR' : 'VEH';
+        object.metric = labels ? 'CZML' : '';
+        object.skipLabel = selected;
+        result.push(object);
+        if (result.length >= maxCount) break;
+      }
+      for (const id of detectionObjects.keys())
+        if (!retained.has(id)) detectionObjects.delete(id);
+      return result;
     },
     attach() {
       const viewer = getViewer();
@@ -187,6 +203,7 @@ export function createSimulationContacts({
     },
     detach() {
       api.stopTracking();
+      detectionObjects.clear();
       handler?.destroy();
       handler = null;
       removeTracked?.();
@@ -280,11 +297,13 @@ export function createSimulationContacts({
     },
     setParams(params) {
       if (typeof params.labels === 'boolean') labels = params.labels;
-      if (Number.isFinite(params.iconScale))
-        iconScale = Math.max(0.5, Math.min(3, params.iconScale));
+      const requestedScale = params.modelScale ?? params.iconScale;
+      if (Number.isFinite(requestedScale))
+        modelScale = Math.max(0.5, Math.min(3, requestedScale));
       render.governorRequestRender('simulation-presentation');
+      render.markDetectionSourcesChanged?.('simulation-presentation');
     },
-    getParams: () => ({ labels, iconScale }),
+    getParams: () => ({ labels, modelScale }),
   };
   return api;
 }

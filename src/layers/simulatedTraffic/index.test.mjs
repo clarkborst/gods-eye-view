@@ -200,28 +200,39 @@ test('malformed documents and duplicate IDs fail without taking over the viewer 
   assert.equal(duplicate.api.getState().active, false);
 });
 
-test('aircraft use the shared silhouettes, drones use a distinct quadrotor and ground robots stay generic', async (t) => {
-  const { aircraftIcon } = await import('../../data/aircraftIcons.js');
-  const { DRONE_ICON } = await import('./icons.js');
+test('aircraft use existing GLBs, drones use the quadcopter GLB and all contacts use shared identification', async (t) => {
   const f = fixture(t);
   await f.layer.enable(f.viewer);
   const time = f.viewer.clock.currentTime;
   const aircraft = f.viewer.dataSources.get(0).entities.values;
   const drones = f.viewer.dataSources.get(1).entities.values;
-  assert.equal(
-    aircraft[0].billboard.image.getValue(time),
-    aircraftIcon('airliner'),
-  );
-  assert.equal(
-    aircraft[2].billboard.image.getValue(time),
-    aircraftIcon('bizjet'),
-  );
-  assert.equal(drones[0].billboard.image.getValue(time), DRONE_ICON);
+  assert.equal(aircraft[0].model.uri.getValue(time), '/models/airplane.glb');
+  assert.equal(aircraft[2].model.uri.getValue(time), '/models/citation2.glb');
+  assert.equal(drones[0].model.uri.getValue(time), '/models/quadcopter.glb');
+  assert.equal(aircraft[0].billboard, undefined);
   assert.equal(aircraft[0].point, undefined);
   assert.ok(f.viewer.dataSources.get(2).entities.values[0].point);
-  f.api.setParams({ labels: false, iconScale: 2 });
-  assert.equal(drones[0].label.show.getValue(time), false);
-  assert.equal(drones[0].billboard.scale.getValue(time), 2);
+  const identified = f.layer.getDetectableObjects();
+  assert.equal(identified.length, 6);
+  assert.equal(identified.filter((row) => row.type === 'AIR').length, 5);
+  assert.equal(identified[0].sourceId, aircraft[0].id);
+  assert.equal(identified[0].id, aircraft[0].name);
+  assert.equal(identified[0].metric, 'CZML');
+  assert.equal(
+    aircraft[0].label.show.getValue(time),
+    false,
+    'native CZML labels must not duplicate the shared overlay',
+  );
+  assert.equal(f.layer.getDetectableObjects({ maxCount: 2 }).length, 2);
+  assert.equal(f.layer.getDetectableObjects({ maxCount: 0 }).length, 0);
+  f.api.setParams({ labels: false, modelScale: 2 });
+  assert.ok(
+    f.layer
+      .getDetectableObjects()
+      .every((row) => row.id === '' && row.metric === ''),
+  );
+  assert.equal(drones[0].model.scale.getValue(time), 2);
+  f.api.setParams({ labels: true });
   f.api.seek(300);
   assert.equal(f.layer.contacts.getAllPositions().length, 5);
   assert.equal(f.layer.contacts.trackById(drones[0].id), true);
@@ -233,10 +244,15 @@ test('aircraft use the shared silhouettes, drones use a distinct quadrotor and g
   const proxy = f.viewer.trackedEntity;
   assert.equal(f.viewer.entities.contains(proxy), true);
   proxy.show = false; // Cockpit takes ownership and hides its source contact.
-  assert.equal(drones[0].billboard.show.getValue(time), false);
+  assert.equal(drones[0].model.show.getValue(time), false);
+  assert.equal(
+    f.layer.getDetectableObjects().some((row) => row.sourceId === drones[0].id),
+    false,
+  );
   assert.equal(f.layer.contacts.getTrackedInfo().icao24, drones[0].id);
   f.api.seek(500);
   assert.notEqual(f.layer.contacts.getTrackedInfo().latitude, tracked.latitude);
   await f.layer.disable();
   assert.equal(f.viewer.entities.contains(proxy), false);
+  assert.deepEqual(f.layer.getDetectableObjects(), []);
 });
