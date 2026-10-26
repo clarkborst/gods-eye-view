@@ -2587,7 +2587,8 @@
       "src/layers/simulatedTraffic/scenarios.js",
       "src/layers/simulatedTraffic/contacts.js",
       "src/layers/simulatedTraffic/models.js",
-      "src/app/layers/simulationContacts.js"
+      "src/app/layers/simulationContacts.js",
+      "src/app/altitudeLines.js"
     ],
     "external": [
       "hls.js",

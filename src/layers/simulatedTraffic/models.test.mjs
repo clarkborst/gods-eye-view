@@ -5,10 +5,22 @@ import * as Cesium from 'cesium';
 import { simulationModelSpec, simulationModelOrientation } from './models.js';
 
 const time = Cesium.JulianDate.fromIso8601('2026-10-26T10:00:00Z');
+// Include Cesium's real glTF Y-up/Z-forward conversion; testing only the
+// entity quaternion would miss the renderer's additional 90-degree yaw.
+const assetAxes = Cesium.Matrix4.multiply(
+  Cesium.Axis.Y_UP_TO_Z_UP,
+  Cesium.Axis.Z_UP_TO_X_UP,
+  new Cesium.Matrix4(),
+);
+const nose = Cesium.Matrix4.multiplyByPointAsVector(
+  assetAxes,
+  new Cesium.Cartesian3(-1, 0, 0),
+  new Cesium.Cartesian3(),
+);
 const direction = (orientation) =>
   Cesium.Matrix3.multiplyByVector(
     Cesium.Matrix3.fromQuaternion(orientation),
-    new Cesium.Cartesian3(-1, 0, 0),
+    nose,
     new Cesium.Cartesian3(),
   );
 
@@ -60,7 +72,11 @@ test('nose-minus-X models follow sampled velocity and authored attitude is retai
   assert.ok(
     Cesium.Quaternion.equals(
       simulationModelOrientation(entity).getValue(time),
-      authored,
+      Cesium.Quaternion.multiply(
+        authored,
+        Cesium.Quaternion.fromAxisAngle(Cesium.Cartesian3.UNIT_Z, Math.PI / 2),
+        new Cesium.Quaternion(),
+      ),
     ),
   );
 });
@@ -134,4 +150,69 @@ test('the quadcopter GLB is self-contained with valid mesh bounds at drone scale
   assert.ok(extent.x > 0.7 && extent.x < 1.5);
   assert.ok(extent.z > 0.7 && extent.z < 1.5);
   assert.ok(extent.y > 0.2 && extent.y < 0.6, 'glTF Y is the vertical axis');
+});
+
+test('bank rotates around the flown course without changing the rendered GLB heading', () => {
+  const position = new Cesium.SampledPositionProperty();
+  const a = Cesium.Cartesian3.fromDegrees(4.44, 51.95, 1000),
+    b = Cesium.Cartesian3.fromDegrees(4.441, 51.951, 1100);
+  position.addSample(time, a);
+  position.addSample(
+    Cesium.JulianDate.addSeconds(time, 10, new Cesium.JulianDate()),
+    b,
+  );
+  const at = Cesium.JulianDate.addSeconds(time, 5, new Cesium.JulianDate());
+  const entity = new Cesium.Entity({
+    position,
+    properties: { roll: 20 },
+    orientation: new Cesium.VelocityOrientationProperty(position),
+  });
+  const banked = simulationModelOrientation(entity).getValue(at);
+  const velocity = Cesium.Cartesian3.normalize(
+    Cesium.Cartesian3.subtract(b, a, new Cesium.Cartesian3()),
+    new Cesium.Cartesian3(),
+  );
+  assert.ok(Cesium.Cartesian3.dot(direction(banked), velocity) > 0.999);
+  const up = Cesium.Matrix3.multiplyByVector(
+    Cesium.Matrix3.fromQuaternion(banked),
+    Cesium.Cartesian3.UNIT_Z,
+    new Cesium.Cartesian3(),
+  );
+  entity.properties.roll = 0;
+  const level = simulationModelOrientation(entity).getValue(at);
+  const levelUp = Cesium.Matrix3.multiplyByVector(
+    Cesium.Matrix3.fromQuaternion(level),
+    Cesium.Cartesian3.UNIT_Z,
+    new Cesium.Cartesian3(),
+  );
+  assert.ok(
+    Math.abs(
+      Cesium.Cartesian3.dot(up, levelUp) - Math.cos(Cesium.Math.toRadians(20)),
+    ) < 1e-6,
+  );
+});
+
+test('Rotterdam aircraft carry normalized CZML attitude and opposite signed banked turns', async () => {
+  const packets = JSON.parse(
+    await readFile(
+      new URL(
+        '../../../public/scenarios/rotterdam/aircraft.czml',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  const banks = packets.slice(1).map((entity) => {
+    const q = entity.orientation.unitQuaternion;
+    for (let i = 0; i < q.length; i += 5)
+      assert.ok(Math.abs(Math.hypot(...q.slice(i + 1, i + 5)) - 1) < 1e-8);
+    const samples = entity.properties.roll.number.filter((_, i) => i % 2 === 1);
+    assert.ok(
+      samples.every((bank) => Number.isFinite(bank) && Math.abs(bank) <= 25),
+    );
+    return samples;
+  });
+  assert.ok(Math.max(...banks[0]) > 15);
+  assert.equal(Math.max(...banks[1].map(Math.abs)), 0);
+  assert.ok(Math.min(...banks[2]) < -10);
 });

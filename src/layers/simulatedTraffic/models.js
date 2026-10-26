@@ -19,24 +19,34 @@ export function simulationModelSpec(category, aircraftClass) {
   };
 }
 
-/** Adapt Cesium's velocity frame (+X forward) to the bundled model convention.
- * Explicit CZML attitude is retained. A stationary vehicle uses authored heading
- * in degrees (north=0) rather than an undefined velocity orientation.
+/** Convert vehicle attitude (+X forward, +Z up) to the bundled GLB convention.
+ * Cesium applies Y_UP_TO_Z_UP * Z_UP_TO_X_UP internally, making the raw -X
+ * nose point along -Y. A +90 degree yaw, not 180, aligns it with velocity.
+ * Sampled roll (degrees, positive right bank) keeps heading velocity-aligned.
  */
 export function simulationModelOrientation(entity) {
-  const source = entity.orientation;
-  const derived = source instanceof Cesium.VelocityOrientationProperty;
+  const roll = entity.properties?.roll;
+  const source = roll
+    ? new Cesium.VelocityOrientationProperty(entity.position)
+    : entity.orientation;
   const noseCorrection = Cesium.Quaternion.fromAxisAngle(
     Cesium.Cartesian3.UNIT_Z,
-    Math.PI,
+    Math.PI / 2,
   );
   return new Cesium.CallbackProperty(
     (time, result = new Cesium.Quaternion()) => {
       const orientation = source?.getValue(time, result);
-      if (orientation)
-        return derived
-          ? Cesium.Quaternion.multiply(orientation, noseCorrection, result)
-          : orientation;
+      if (orientation) {
+        if (roll) {
+          const bank = Cesium.Math.toRadians(Number(roll.getValue(time)) || 0);
+          Cesium.Quaternion.multiply(
+            orientation,
+            Cesium.Quaternion.fromAxisAngle(Cesium.Cartesian3.UNIT_X, bank),
+            result,
+          );
+        }
+        return Cesium.Quaternion.multiply(result, noseCorrection, result);
+      }
       const position = entity.position?.getValue(time);
       if (!position) return undefined;
       const heading = Number(entity.properties?.heading?.getValue(time)) || 0;
@@ -53,6 +63,15 @@ export function simulationModelOrientation(entity) {
         new Cesium.Matrix3(),
       );
       Cesium.Quaternion.fromRotationMatrix(rotation, result);
+      if (roll)
+        Cesium.Quaternion.multiply(
+          result,
+          Cesium.Quaternion.fromAxisAngle(
+            Cesium.Cartesian3.UNIT_X,
+            Cesium.Math.toRadians(Number(roll.getValue(time)) || 0),
+          ),
+          result,
+        );
       return Cesium.Quaternion.multiply(result, noseCorrection, result);
     },
     false,

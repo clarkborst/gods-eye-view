@@ -111,6 +111,12 @@ try {
   });
   assert.equal(sharedIdentification.count, 6);
   assert.notEqual(sharedIdentification.mode, 'OFF');
+  await page.waitForFunction(
+    () =>
+      window.__godsEyeView.altitudeLines.getDiagnostics().byLayer[
+        'simulated-traffic'
+      ] > 0,
+  );
   const position = () =>
     page.evaluate(() => {
       const app = window.__godsEyeView;
@@ -251,6 +257,23 @@ try {
       anchorBefore,
       'a paused replay must not coast in cockpit',
     );
+    if (id === 'sim:rotterdam:airliner-departure') {
+      await page.evaluate(() =>
+        window.__godsEyeView.dataManager.layers
+          .get('simulated-traffic')
+          .module.simulation.seek(340),
+      );
+      await page.waitForFunction(() => {
+        const app = window.__godsEyeView;
+        const bank =
+          app.styleManager.cockpitView.readAircraftInfo()?.rollDegrees || 0;
+        const roll =
+          ((app.viewer.camera.roll + Math.PI) % (2 * Math.PI)) - Math.PI;
+        return (
+          bank > 15 && Math.abs(Math.abs(roll) - (bank * Math.PI) / 180) < 0.02
+        );
+      });
+    }
     await page.evaluate(() =>
       window.__godsEyeView.styleManager.cockpitView.exit(),
     );
@@ -312,6 +335,13 @@ try {
   );
   await mkdir('qa-artifacts/simulation', { recursive: true });
   await page.screenshot({ path: 'qa-artifacts/simulation/rotterdam.png' });
+  const fixturePosition = await page.evaluate(
+    () =>
+      window.__godsEyeView.dataManager.layers
+        .get('simulated-traffic')
+        .module.contacts.getAllPositions()
+        .find((row) => row.id.endsWith('airliner-arrival')).position,
+  );
   await page.click(`${row} .data-toggle-btn`);
   checkingSimulation = false;
   await page.waitForFunction(
@@ -333,6 +363,31 @@ try {
     };
   });
   assert.deepEqual(restored, { ...original, active: false, hold: false });
+  const liveAltitude = await page.evaluate((position) => {
+    const app = window.__godsEyeView,
+      manager = app.dataManager;
+    const layer = manager.layers.get('flights').module;
+    const originalEnabled = manager.isEnabled,
+      originalObjects = layer.getDetectableObjects;
+    try {
+      manager.isEnabled = (id) =>
+        id === 'flights' || originalEnabled.call(manager, id);
+      layer.getDetectableObjects = () => [
+        { type: 'AIR', sourceId: 'qa-live-altitude', position },
+      ];
+      app.altitudeLines.update({ force: true });
+      return app.altitudeLines.getDiagnostics().byLayer.flights || 0;
+    } finally {
+      manager.isEnabled = originalEnabled;
+      layer.getDetectableObjects = originalObjects;
+      app.altitudeLines.update({ force: true });
+    }
+  }, fixturePosition);
+  assert.equal(
+    liveAltitude,
+    1,
+    'the same GPU renderer must accept live traffic positions without starting a feed',
+  );
   const destroyed = await page.evaluate(async () => {
     const app = window.__godsEyeView;
     await app.dataManager.setEnabled('simulated-traffic', true, {
@@ -343,7 +398,11 @@ try {
       /\/src\/main\.js(?:\?|$)/.test(script.src),
     );
     const { application } = await import(entry.src);
-    await application.destroy();
+    await application.destroy().catch((error) => {
+      const describe = (failure) =>
+        failure.errors?.map(describe).join('; ') || failure.message;
+      throw new Error(describe(error));
+    });
     return {
       status: application.getState().status,
       viewerDestroyed: app.viewer.isDestroyed(),
@@ -364,7 +423,7 @@ try {
     'simulation Context must never request live ADS-B/AIS traffic',
   );
   console.log(
-    'PASS: five ready GLB models, shared identification reticles and labels, replay controls, aircraft/drone cockpit entry, CZML-only Context, preference restoration and teardown',
+    'PASS: GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
   );
 } finally {
   await browser.close();

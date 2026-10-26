@@ -88,3 +88,27 @@ changes remain available during replay. The selected vehicle uses the shared
 tracked readout, and the cockpit subject's model and reticle are hidden in first
 person. The optional CZML `properties.heading` supplies a stationary model's
 heading (degrees clockwise from north); moving models follow sampled velocity.
+
+## Bank attitude and altitude lines
+
+The aircraft examples include standard sampled CZML `orientation.unitQuaternion`
+(vehicle frame: +X forward, +Z up), plus sampled `properties.roll` in degrees.
+Positive roll is a right bank. The outbound airliner and business jet bank through
+opposite turns; the straight-in arrival stays level. The replay renderer keeps
+the nose on the instantaneous flown course and applies sampled bank, including
+while seeking or playing backward. The cockpit applies the same bank to its
+camera up vector, so the horizon rolls through the turn. Cesium's internal glTF
+axis conversion is included when aligning the bundled nose-minus-X models.
+Regenerate the synthetic attitude after editing route positions with:
+
+```sh
+node tools/build_rotterdam_aircraft_attitude.mjs
+```
+
+Vertical altitude lines follow the current aircraft/drone positions, including
+live civil, military and local ADS-B aircraft. One shared renderer retains up to
+256 in-view lines, prioritizing the selected contact. Ground ends use the shared
+cached mesh/terrain heights; unresolved heights fall back to the ellipsoid until
+surface data is available. Lines update with movement, replay seeking and source
+visibility, without starting additional traffic feeds. The first-person subject
+is omitted along with its hidden model; other visible aircraft keep their lines.

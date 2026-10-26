@@ -294,6 +294,18 @@ export function update() {
     this.scratchUp,
   );
   Cesium.Cartesian3.normalize(this.scratchUp, this.scratchUp);
+  // Bank around the viewing axis so the replay cockpit horizon follows the
+  // authored attitude. Re-evaluating at replay time also handles seeks/reverse.
+  const bank = Number(info.rollDegrees);
+  if (Number.isFinite(bank) && bank !== 0) {
+    const rotation = Cesium.Matrix3.fromQuaternion(
+      Cesium.Quaternion.fromAxisAngle(
+        this.scratchForward,
+        Cesium.Math.toRadians(bank),
+      ),
+    );
+    Cesium.Matrix3.multiplyByVector(rotation, this.scratchUp, this.scratchUp);
+  }
 
   Cesium.Cartesian3.multiplyByScalar(
     this.scratchHorizontal,

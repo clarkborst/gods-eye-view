@@ -68,7 +68,7 @@ export function createSimulationContacts({
     const track =
       velocityMps > 0.01
         ? (Cesium.Math.toDegrees(Math.atan2(local.x, local.y)) + 360) % 360
-        : 0;
+        : Number(value(entity, 'heading', time)) || 0;
     const category = entityCategory(entity, time);
     const aircraftClass =
       category === 'drone'
@@ -95,6 +95,7 @@ export function createSimulationContacts({
       speedKts: velocityMps * 1.94384,
       track,
       heading: track,
+      rollDegrees: Number(value(entity, 'roll', time)) || 0,
       verticalRateMps:
         dt > 0
           ? (Cesium.Cartographic.fromCartesian(b).height -

@@ -1,6 +1,8 @@
 import { LayerLifecycle } from '../data/lifecycle.js';
 import { LayerPresentation } from './layerPresentation.js';
 import { createCyberSonarScene } from '../cyberSonarScene.js';
+import { createAltitudeLines } from './altitudeLines.js';
+import { governorRequestRender } from '../renderGovernor.js';
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
   scene: { viewer, mapStackController },
@@ -36,6 +38,13 @@ export function createApplicationData({
     layer.attachMapStackController?.(mapStackController);
   // Restoration starts only after the caller's complete registry is sealed.
   dataManager.finalizeRegistrations(catalog.metadata);
+  const altitudeLines = createAltitudeLines({
+    viewer,
+    manager: dataManager,
+    groundFloor: catalog.surface?.groundFloor,
+    requestRender: governorRequestRender,
+  });
+  defer(() => altitudeLines.destroy());
   if (allowQaRegistration) {
     window.__gevQaRegisterLayer = (targetManager, layerModule) => {
       if (targetManager !== dataManager)
@@ -60,5 +69,5 @@ export function createApplicationData({
   styleManager.attachDataManager(dataManager);
   defer(createCyberSonarScene(viewer, dataManager));
 
-  return { dataManager, catalog, presentation };
+  return { dataManager, catalog, presentation, altitudeLines };
 }
