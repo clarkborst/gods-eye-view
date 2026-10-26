@@ -33,13 +33,15 @@ import { createInfrastructureLayers } from '../data/infrastructure.js';
 import { localGeoJsonServices } from './localGeojsonServices.js';
 import { createBhoteKoshiEventLayer } from '../data/bhoteKoshiEvent.js';
 import { createBhoteKoshiLocatorLayer } from '../data/bhoteKoshiLocator.js';
+import { createApplicationSimulatedTraffic } from './layers/simulatedTraffic.js';
 
 /**
- * Hardware-local layers are registered like any other but never enter share
- * links or stored layer state: another browser cannot have this receiver.
+ * Session-local layers never enter share links or stored layer state: another
+ * browser cannot have this receiver or implicitly take over the viewer clock.
  */
 export const LOCAL_ONLY_LAYER_METADATA = Object.freeze([
   Object.freeze({ id: 'local-adsb', disposition: 'local-only' }),
+  Object.freeze({ id: 'simulated-traffic', disposition: 'local-only' }),
 ]);
 
 /** Serialization metadata for every layer the application catalog constructs. */
@@ -112,6 +114,7 @@ export function createApplicationCatalog({
         }),
         flights,
         military,
+        createApplicationSimulatedTraffic({ resolveAsset }),
         createApplicationLocalAdsb({
           surface,
           enrichment: sources.flights,

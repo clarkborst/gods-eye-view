@@ -1,0 +1,175 @@
+[
+  {
+    "id": "document",
+    "version": "1.0",
+    "name": "Rotterdam ground robots \u2014 SYNTHETIC TEST DATA",
+    "clock": {
+      "interval": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+      "currentTime": "2026-10-26T10:00:00Z",
+      "multiplier": 1,
+      "range": "CLAMPED",
+      "step": "SYSTEM_CLOCK_MULTIPLIER"
+    }
+  },
+  {
+    "id": "sim:rotterdam:ground-inspection",
+    "name": "SIM UGV01 \u00b7 ground inspection",
+    "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional low-speed apron inspection robot, approximately 1.4 metres per second on straight segments. Static ellipsoid height; not a surveyed ground route.</p>",
+    "properties": {
+      "vehicleCategory": "ground-robot",
+      "simulated": true,
+      "airport": "EHRD",
+      "altitudeDatum": "WGS84 ellipsoid",
+      "scenario": "rotterdam-demo"
+    },
+    "position": {
+      "epoch": "2026-10-26T10:00:00Z",
+      "referenceFrame": "FIXED",
+      "interpolationAlgorithm": "LINEAR",
+      "interpolationDegree": 1,
+      "forwardExtrapolationType": "HOLD",
+      "backwardExtrapolationType": "HOLD",
+      "cartographicDegrees": [
+        0,
+        4.437,
+        51.9512,
+        43,
+        100,
+        4.439,
+        51.9512,
+        43,
+        200,
+        4.441,
+        51.9512,
+        43,
+        230,
+        4.441,
+        51.9512,
+        43,
+        280,
+        4.441,
+        51.952,
+        43,
+        380,
+        4.439,
+        51.952,
+        43,
+        480,
+        4.437,
+        51.952,
+        43,
+        530,
+        4.437,
+        51.9512,
+        43,
+        600,
+        4.437,
+        51.9512,
+        43,
+        700,
+        4.439,
+        51.9512,
+        43,
+        800,
+        4.441,
+        51.9512,
+        43,
+        850,
+        4.441,
+        51.952,
+        43,
+        950,
+        4.439,
+        51.952,
+        43,
+        1050,
+        4.437,
+        51.952,
+        43,
+        1100,
+        4.437,
+        51.9512,
+        43,
+        1200,
+        4.437,
+        51.9512,
+        43
+      ]
+    },
+    "point": {
+      "pixelSize": 8,
+      "color": {
+        "rgba": [
+          120,
+          240,
+          150,
+          255
+        ]
+      },
+      "outlineColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          255
+        ]
+      },
+      "outlineWidth": 2
+    },
+    "label": {
+      "text": "SIM UGV01 \u00b7 ground inspection",
+      "font": "12px sans-serif",
+      "fillColor": {
+        "rgba": [
+          120,
+          240,
+          150,
+          255
+        ]
+      },
+      "showBackground": true,
+      "backgroundColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          200
+        ]
+      },
+      "pixelOffset": {
+        "cartesian2": [
+          0,
+          -20
+        ]
+      },
+      "scaleByDistance": {
+        "nearFarScalar": [
+          1000,
+          1,
+          80000,
+          0.5
+        ]
+      }
+    },
+    "path": {
+      "show": true,
+      "width": 2,
+      "leadTime": 0,
+      "trailTime": 180,
+      "resolution": 2,
+      "material": {
+        "solidColor": {
+          "color": {
+            "rgba": [
+              120,
+              240,
+              150,
+              170
+            ]
+          }
+        }
+      }
+    }
+  }
+]

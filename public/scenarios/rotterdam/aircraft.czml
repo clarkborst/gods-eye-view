@@ -1,0 +1,465 @@
+[
+  {
+    "id": "document",
+    "version": "1.0",
+    "name": "Rotterdam aircraft \u2014 SYNTHETIC TEST DATA",
+    "clock": {
+      "interval": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+      "currentTime": "2026-10-26T10:00:00Z",
+      "multiplier": 1,
+      "range": "CLAMPED",
+      "step": "SYSTEM_CLOCK_MULTIPLIER"
+    }
+  },
+  {
+    "id": "sim:rotterdam:airliner-departure",
+    "name": "SIM RTM101 \u00b7 departure 24",
+    "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional narrow-body departure from the approximate runway 24 centerline; ground roll, climb and a westbound turn.</p>",
+    "properties": {
+      "vehicleCategory": "aircraft",
+      "simulated": true,
+      "airport": "EHRD",
+      "altitudeDatum": "WGS84 ellipsoid",
+      "scenario": "rotterdam-demo"
+    },
+    "position": {
+      "epoch": "2026-10-26T10:00:00Z",
+      "referenceFrame": "FIXED",
+      "interpolationAlgorithm": "LINEAR",
+      "interpolationDegree": 1,
+      "forwardExtrapolationType": "HOLD",
+      "backwardExtrapolationType": "HOLD",
+      "cartographicDegrees": [
+        0,
+        4.446,
+        51.96,
+        43,
+        150,
+        4.446,
+        51.96,
+        43,
+        170,
+        4.444,
+        51.9593,
+        43,
+        185,
+        4.439,
+        51.9576,
+        43,
+        200,
+        4.43,
+        51.9546,
+        44,
+        215,
+        4.416,
+        51.95,
+        105,
+        240,
+        4.389,
+        51.941,
+        250,
+        280,
+        4.347,
+        51.927,
+        490,
+        340,
+        4.278,
+        51.91,
+        930,
+        400,
+        4.21,
+        51.912,
+        1400,
+        480,
+        4.1,
+        51.94,
+        2200,
+        600,
+        3.93,
+        51.985,
+        3500,
+        780,
+        3.65,
+        52.06,
+        5000,
+        1200,
+        2.95,
+        52.24,
+        7500
+      ]
+    },
+    "point": {
+      "pixelSize": 10,
+      "color": {
+        "rgba": [
+          80,
+          210,
+          255,
+          255
+        ]
+      },
+      "outlineColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          255
+        ]
+      },
+      "outlineWidth": 2
+    },
+    "label": {
+      "text": "SIM RTM101 \u00b7 departure 24",
+      "font": "12px sans-serif",
+      "fillColor": {
+        "rgba": [
+          80,
+          210,
+          255,
+          255
+        ]
+      },
+      "showBackground": true,
+      "backgroundColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          200
+        ]
+      },
+      "pixelOffset": {
+        "cartesian2": [
+          0,
+          -20
+        ]
+      },
+      "scaleByDistance": {
+        "nearFarScalar": [
+          1000,
+          1,
+          80000,
+          0.5
+        ]
+      }
+    },
+    "path": {
+      "show": true,
+      "width": 2,
+      "leadTime": 0,
+      "trailTime": 180,
+      "resolution": 2,
+      "material": {
+        "solidColor": {
+          "color": {
+            "rgba": [
+              80,
+              210,
+              255,
+              170
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "sim:rotterdam:airliner-arrival",
+    "name": "SIM RTM202 \u00b7 arrival 24",
+    "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional stabilized approach to runway 24, landing and slow apron taxi. Approximate centerline, not a published procedure.</p>",
+    "properties": {
+      "vehicleCategory": "aircraft",
+      "simulated": true,
+      "airport": "EHRD",
+      "altitudeDatum": "WGS84 ellipsoid",
+      "scenario": "rotterdam-demo"
+    },
+    "position": {
+      "epoch": "2026-10-26T10:00:00Z",
+      "referenceFrame": "FIXED",
+      "interpolationAlgorithm": "LINEAR",
+      "interpolationDegree": 1,
+      "forwardExtrapolationType": "HOLD",
+      "backwardExtrapolationType": "HOLD",
+      "cartographicDegrees": [
+        0,
+        5.01,
+        52.14,
+        2200,
+        120,
+        4.875,
+        52.097,
+        1700,
+        240,
+        4.74,
+        52.054,
+        1200,
+        360,
+        4.61,
+        52.013,
+        710,
+        450,
+        4.515,
+        51.982,
+        330,
+        490,
+        4.475,
+        51.969,
+        155,
+        515,
+        4.45,
+        51.961,
+        60,
+        525,
+        4.439,
+        51.9575,
+        43,
+        540,
+        4.428,
+        51.9538,
+        43,
+        560,
+        4.425,
+        51.9528,
+        43,
+        590,
+        4.429,
+        51.9518,
+        43,
+        640,
+        4.436,
+        51.952,
+        43,
+        700,
+        4.441,
+        51.9521,
+        43,
+        1200,
+        4.441,
+        51.9521,
+        43
+      ]
+    },
+    "point": {
+      "pixelSize": 10,
+      "color": {
+        "rgba": [
+          80,
+          210,
+          255,
+          255
+        ]
+      },
+      "outlineColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          255
+        ]
+      },
+      "outlineWidth": 2
+    },
+    "label": {
+      "text": "SIM RTM202 \u00b7 arrival 24",
+      "font": "12px sans-serif",
+      "fillColor": {
+        "rgba": [
+          80,
+          210,
+          255,
+          255
+        ]
+      },
+      "showBackground": true,
+      "backgroundColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          200
+        ]
+      },
+      "pixelOffset": {
+        "cartesian2": [
+          0,
+          -20
+        ]
+      },
+      "scaleByDistance": {
+        "nearFarScalar": [
+          1000,
+          1,
+          80000,
+          0.5
+        ]
+      }
+    },
+    "path": {
+      "show": true,
+      "width": 2,
+      "leadTime": 0,
+      "trailTime": 180,
+      "resolution": 2,
+      "material": {
+        "solidColor": {
+          "color": {
+            "rgba": [
+              80,
+              210,
+              255,
+              170
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "sim:rotterdam:business-departure",
+    "name": "SIM RTM303 \u00b7 business jet",
+    "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional business-jet taxi, departure and southwest climb after the preceding arrival has vacated.</p>",
+    "properties": {
+      "vehicleCategory": "aircraft",
+      "simulated": true,
+      "airport": "EHRD",
+      "altitudeDatum": "WGS84 ellipsoid",
+      "scenario": "rotterdam-demo"
+    },
+    "position": {
+      "epoch": "2026-10-26T10:00:00Z",
+      "referenceFrame": "FIXED",
+      "interpolationAlgorithm": "LINEAR",
+      "interpolationDegree": 1,
+      "forwardExtrapolationType": "HOLD",
+      "backwardExtrapolationType": "HOLD",
+      "cartographicDegrees": [
+        0,
+        4.443,
+        51.9518,
+        43,
+        740,
+        4.443,
+        51.9518,
+        43,
+        800,
+        4.448,
+        51.954,
+        43,
+        850,
+        4.45,
+        51.958,
+        43,
+        880,
+        4.446,
+        51.96,
+        43,
+        900,
+        4.439,
+        51.9575,
+        43,
+        915,
+        4.427,
+        51.9535,
+        44,
+        935,
+        4.407,
+        51.947,
+        150,
+        970,
+        4.368,
+        51.934,
+        430,
+        1020,
+        4.312,
+        51.92,
+        950,
+        1080,
+        4.26,
+        51.89,
+        1700,
+        1200,
+        4.16,
+        51.8,
+        3200
+      ]
+    },
+    "point": {
+      "pixelSize": 10,
+      "color": {
+        "rgba": [
+          80,
+          210,
+          255,
+          255
+        ]
+      },
+      "outlineColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          255
+        ]
+      },
+      "outlineWidth": 2
+    },
+    "label": {
+      "text": "SIM RTM303 \u00b7 business jet",
+      "font": "12px sans-serif",
+      "fillColor": {
+        "rgba": [
+          80,
+          210,
+          255,
+          255
+        ]
+      },
+      "showBackground": true,
+      "backgroundColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          200
+        ]
+      },
+      "pixelOffset": {
+        "cartesian2": [
+          0,
+          -20
+        ]
+      },
+      "scaleByDistance": {
+        "nearFarScalar": [
+          1000,
+          1,
+          80000,
+          0.5
+        ]
+      }
+    },
+    "path": {
+      "show": true,
+      "width": 2,
+      "leadTime": 0,
+      "trailTime": 180,
+      "resolution": 2,
+      "material": {
+        "solidColor": {
+          "color": {
+            "rgba": [
+              80,
+              210,
+              255,
+              170
+            ]
+          }
+        }
+      }
+    }
+  }
+]

@@ -2241,6 +2241,11 @@ export class LayerLifecycle {
     return entry ? entry.enabled : false;
   }
 
+  /** Let temporary modes honor Clear All without restoring suspended layers. */
+  isLayerInClearBatch(layerId) {
+    return Boolean(this.layers.get(layerId)?.clearVisibilityReservation);
+  }
+
   /** Return authoritative settled visibility and the current lifecycle phase. */
   getLayerLifecycleState(layerId) {
     const entry = this.layers.get(layerId);

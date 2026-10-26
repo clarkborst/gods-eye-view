@@ -108,6 +108,9 @@ export function applicationViewerOptions(creditContainer) {
   return {
     timeline: false,
     animation: false,
+    // Scenario playback owns time explicitly; adding a data source must not
+    // silently replace the application clock.
+    automaticallyTrackDataSourceClocks: false,
     baseLayerPicker: false,
     geocoder: false,
     homeButton: false,

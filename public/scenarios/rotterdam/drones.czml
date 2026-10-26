@@ -1,0 +1,320 @@
+[
+  {
+    "id": "document",
+    "version": "1.0",
+    "name": "Rotterdam aerial drones \u2014 SYNTHETIC TEST DATA",
+    "clock": {
+      "interval": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+      "currentTime": "2026-10-26T10:00:00Z",
+      "multiplier": 1,
+      "range": "CLAMPED",
+      "step": "SYSTEM_CLOCK_MULTIPLIER"
+    }
+  },
+  {
+    "id": "sim:rotterdam:inspection-uav",
+    "name": "SIM UAV01 \u00b7 inspection",
+    "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional slow multirotor inspection circuit southeast of the runway, with vertical takeoff, hover, two circuits and landing. Not an authorized drone operation.</p>",
+    "properties": {
+      "vehicleCategory": "drone",
+      "simulated": true,
+      "airport": "EHRD",
+      "altitudeDatum": "WGS84 ellipsoid",
+      "scenario": "rotterdam-demo"
+    },
+    "position": {
+      "epoch": "2026-10-26T10:00:00Z",
+      "referenceFrame": "FIXED",
+      "interpolationAlgorithm": "LINEAR",
+      "interpolationDegree": 1,
+      "forwardExtrapolationType": "HOLD",
+      "backwardExtrapolationType": "HOLD",
+      "cartographicDegrees": [
+        0,
+        4.453,
+        51.946,
+        44,
+        30,
+        4.453,
+        51.946,
+        44,
+        60,
+        4.453,
+        51.946,
+        75,
+        140,
+        4.4544,
+        51.946,
+        75,
+        220,
+        4.4544,
+        51.9472,
+        75,
+        300,
+        4.453,
+        51.9472,
+        75,
+        380,
+        4.453,
+        51.946,
+        75,
+        440,
+        4.453,
+        51.946,
+        75,
+        520,
+        4.4544,
+        51.946,
+        90,
+        600,
+        4.4544,
+        51.9472,
+        90,
+        680,
+        4.453,
+        51.9472,
+        90,
+        760,
+        4.453,
+        51.946,
+        90,
+        820,
+        4.453,
+        51.946,
+        75,
+        900,
+        4.453,
+        51.946,
+        44,
+        1200,
+        4.453,
+        51.946,
+        44
+      ]
+    },
+    "point": {
+      "pixelSize": 8,
+      "color": {
+        "rgba": [
+          255,
+          190,
+          70,
+          255
+        ]
+      },
+      "outlineColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          255
+        ]
+      },
+      "outlineWidth": 2
+    },
+    "label": {
+      "text": "SIM UAV01 \u00b7 inspection",
+      "font": "12px sans-serif",
+      "fillColor": {
+        "rgba": [
+          255,
+          190,
+          70,
+          255
+        ]
+      },
+      "showBackground": true,
+      "backgroundColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          200
+        ]
+      },
+      "pixelOffset": {
+        "cartesian2": [
+          0,
+          -20
+        ]
+      },
+      "scaleByDistance": {
+        "nearFarScalar": [
+          1000,
+          1,
+          80000,
+          0.5
+        ]
+      }
+    },
+    "path": {
+      "show": true,
+      "width": 2,
+      "leadTime": 0,
+      "trailTime": 180,
+      "resolution": 2,
+      "material": {
+        "solidColor": {
+          "color": {
+            "rgba": [
+              255,
+              190,
+              70,
+              170
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "sim:rotterdam:survey-uav",
+    "name": "SIM UAV02 \u00b7 survey",
+    "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional lawnmower survey pattern at approximately 55 metres above the assumed local ground datum, including vertical ascent and descent.</p>",
+    "properties": {
+      "vehicleCategory": "drone",
+      "simulated": true,
+      "airport": "EHRD",
+      "altitudeDatum": "WGS84 ellipsoid",
+      "scenario": "rotterdam-demo"
+    },
+    "position": {
+      "epoch": "2026-10-26T10:00:00Z",
+      "referenceFrame": "FIXED",
+      "interpolationAlgorithm": "LINEAR",
+      "interpolationDegree": 1,
+      "forwardExtrapolationType": "HOLD",
+      "backwardExtrapolationType": "HOLD",
+      "cartographicDegrees": [
+        0,
+        4.458,
+        51.945,
+        44,
+        180,
+        4.458,
+        51.945,
+        44,
+        210,
+        4.458,
+        51.945,
+        100,
+        280,
+        4.46,
+        51.945,
+        100,
+        300,
+        4.46,
+        51.9454,
+        100,
+        370,
+        4.458,
+        51.9454,
+        100,
+        390,
+        4.458,
+        51.9458,
+        100,
+        460,
+        4.46,
+        51.9458,
+        100,
+        480,
+        4.46,
+        51.9462,
+        100,
+        550,
+        4.458,
+        51.9462,
+        100,
+        620,
+        4.458,
+        51.945,
+        100,
+        650,
+        4.458,
+        51.945,
+        44,
+        1200,
+        4.458,
+        51.945,
+        44
+      ]
+    },
+    "point": {
+      "pixelSize": 8,
+      "color": {
+        "rgba": [
+          255,
+          190,
+          70,
+          255
+        ]
+      },
+      "outlineColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          255
+        ]
+      },
+      "outlineWidth": 2
+    },
+    "label": {
+      "text": "SIM UAV02 \u00b7 survey",
+      "font": "12px sans-serif",
+      "fillColor": {
+        "rgba": [
+          255,
+          190,
+          70,
+          255
+        ]
+      },
+      "showBackground": true,
+      "backgroundColor": {
+        "rgba": [
+          5,
+          15,
+          25,
+          200
+        ]
+      },
+      "pixelOffset": {
+        "cartesian2": [
+          0,
+          -20
+        ]
+      },
+      "scaleByDistance": {
+        "nearFarScalar": [
+          1000,
+          1,
+          80000,
+          0.5
+        ]
+      }
+    },
+    "path": {
+      "show": true,
+      "width": 2,
+      "leadTime": 0,
+      "trailTime": 180,
+      "resolution": 2,
+      "material": {
+        "solidColor": {
+          "color": {
+            "rgba": [
+              255,
+              190,
+              70,
+              170
+            ]
+          }
+        }
+      }
+    }
+  }
+]

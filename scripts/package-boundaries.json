@@ -517,7 +517,8 @@
       "src/ui/unitLabels.js",
       "src/ui/keyGuidance.js",
       "src/ui/statusText.js",
-      "src/ui/statusBadge.js"
+      "src/ui/statusBadge.js",
+      "src/ui/simulationPanel.js"
     ],
     "external": []
   },
@@ -806,7 +807,8 @@
       "src/ui/layerNames.js",
       "src/ui/statusText.js",
       "src/ui/statusBadge.js",
-      "src/scopeMaskPolicy.js"
+      "src/scopeMaskPolicy.js",
+      "src/ui/simulationPanel.js"
     ],
     "external": ["cesium"]
   },
@@ -2576,7 +2578,13 @@
       "src/voice/geminiCaptureWorklet.js",
       "src/ui/statusBadge.js",
       "src/sceneCommandRelease.js",
-      "src/scopeMaskPolicy.js"
+      "src/scopeMaskPolicy.js",
+      "src/ui/simulationPanel.js",
+      "src/app/layers/simulatedTraffic.js",
+      "src/layers/simulatedTraffic/index.js",
+      "src/layers/simulatedTraffic/playback.js",
+      "src/layers/simulatedTraffic/mode.js",
+      "src/layers/simulatedTraffic/scenarios.js"
     ],
     "external": [
       "hls.js",
@@ -3144,7 +3152,12 @@
       "src/layers/airQuality/source.js",
       "src/ui/statusText.js",
       "src/ui/layerNames.js",
-      "src/layers/streetLevel/providers/mapillary/policy.js"
+      "src/layers/streetLevel/providers/mapillary/policy.js",
+      "src/app/layers/simulatedTraffic.js",
+      "src/layers/simulatedTraffic/index.js",
+      "src/layers/simulatedTraffic/playback.js",
+      "src/layers/simulatedTraffic/mode.js",
+      "src/layers/simulatedTraffic/scenarios.js"
     ],
     "external": [
       "hls.js",

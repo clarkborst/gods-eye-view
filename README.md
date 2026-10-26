@@ -57,6 +57,7 @@ Start with the included data sources, then add your own. Each layer is a separat
 ## 🎛️ What This Thing Does
 
 - **🛩️ Cockpit view:** Ride inside a tracked flight — the camera holds the terrain under you all the way down.
+- **⏱️ CZML simulation:** Replay synthetic aircraft, aerial drones, and ground robots around Rotterdam Airport with a scrubber, forward/reverse playback, speed controls, category filters, and vehicle following. Enable **Simulated Traffic** under **Data Layers → Movement**. [Scenario files and authoring guide](public/scenarios/rotterdam/README.md).
 - **📡 Contacts:** A 250 km roster of everything near your target — step through live aircraft and drop into any cockpit.
 - **🎯 Click-to-track anything:** Camera locks on, draws a fading trail, surfaces full metadata — and a tracked fire or vessel hands you off to the nearest live camera in one click.
 - **🖊️ Voice whiteboard:** Speak annotations onto the world — real boundary polygons, marks, and routes.

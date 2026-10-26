@@ -1,0 +1,65 @@
+.simulation-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 9px;
+  padding: 12px 0 4px;
+  border-top: 1px solid rgba(80, 220, 240, 0.25);
+  font-size: 11px;
+}
+.simulation-panel[hidden] {
+  display: none;
+}
+.simulation-panel strong {
+  color: #f4c76b;
+  letter-spacing: 0.06em;
+}
+.simulation-panel p {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+.simulation-panel output {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.simulation-panel select {
+  max-width: 100%;
+  min-width: 0;
+  background: #101e28;
+  color: #e0f6fa;
+  border: 1px solid #375461;
+  border-radius: 4px;
+  padding: 5px;
+}
+.simulation-panel label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.simulation-panel label select {
+  flex: 1;
+}
+.simulation-panel .data-toggle-chip {
+  min-height: 28px;
+  padding: 5px 8px;
+  font-size: 10px;
+  letter-spacing: 0;
+  color: var(--text-primary, #e0f6fa);
+}
+.simulation-transport,
+.simulation-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.simulation-panel input[type='range'] {
+  width: 100%;
+  min-width: 0;
+}
+.simulation-panel button:focus-visible,
+.simulation-panel select:focus-visible {
+  outline: 2px solid #55dcee;
+  outline-offset: 2px;
+}
