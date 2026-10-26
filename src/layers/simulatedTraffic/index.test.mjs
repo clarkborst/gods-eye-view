@@ -8,6 +8,9 @@ import {
   EntityCollection,
   JulianDate,
   Cartesian3,
+  Event,
+  Matrix4,
+  TrackingReferenceFrame,
 } from 'cesium';
 import { createSimulatedTrafficLayer } from './index.js';
 
@@ -31,8 +34,33 @@ function fixture(t, fetchImpl) {
     }),
     dataSources: new DataSourceCollection(),
     entities: new EntityCollection(),
-    camera: { flyTo() {} },
+    scene: {
+      preUpdate: new Event(),
+      screenSpaceCameraController: { inertiaZoom: 0.8, minimumZoomDistance: 1 },
+    },
+    isDestroyed: () => false,
+    trackedEntityChanged: new Event(),
+    camera: {
+      flyTo() {},
+      cancelFlight() {},
+      position: new Cartesian3(0, -10000, 5000),
+      direction: new Cartesian3(0, 1, 0),
+      transform: Matrix4.clone(Matrix4.IDENTITY),
+      lookAtTransform(transform, offset) {
+        Matrix4.clone(transform, this.transform);
+        if (offset) Cartesian3.clone(offset, this.position);
+      },
+    },
   };
+  let tracked;
+  Object.defineProperty(viewer, 'trackedEntity', {
+    get: () => tracked,
+    set: (entity) => {
+      if (tracked === entity) return;
+      tracked = entity;
+      viewer.trackedEntityChanged.raiseEvent(entity);
+    },
+  });
   const layer = createSimulatedTrafficLayer({
     render: {
       holdContinuousRender: (id) => holds.add(id),
@@ -255,4 +283,69 @@ test('aircraft use existing GLBs, drones use the quadcopter GLB and all contacts
   await f.layer.disable();
   assert.equal(f.viewer.entities.contains(proxy), false);
   assert.deepEqual(f.layer.getDetectableObjects(), []);
+});
+
+test('replay frames in ENU, refocuses source double-clicks and releases camera resources on reset', async (t) => {
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  f.api.seek(400);
+  const source = f.viewer.dataSources.get(0).entities.values[0];
+  f.api.track(source.id);
+  const proxy = f.viewer.trackedEntity;
+  assert.equal(proxy.trackingReferenceFrame, TrackingReferenceFrame.ENU);
+  assert.equal(proxy.point.pixelSize.getValue(f.viewer.clock.currentTime), 1);
+  assert.equal(proxy.point.color.getValue(f.viewer.clock.currentTime).alpha, 0);
+  f.viewer.scene.preUpdate.raiseEvent();
+  assert.ok(Cartesian3.magnitude(f.viewer.camera.position) >= 2900);
+  assert.equal(f.viewer.scene.screenSpaceCameraController.inertiaZoom, 0);
+  assert.equal(f.viewer.scene.preUpdate.numberOfListeners, 1);
+  // Cesium's native double-click switches from the proxy to the picked source.
+  f.viewer.camera.position = new Cartesian3(0, -200, 50);
+  f.viewer.trackedEntity = source;
+  f.viewer.scene.preUpdate.raiseEvent();
+  assert.equal(f.viewer.trackedEntity, proxy);
+  assert.ok(Cartesian3.magnitude(f.viewer.camera.position) >= 2900);
+  assert.equal(f.viewer.scene.preUpdate.numberOfListeners, 1);
+  // Empty-space double-click releases Cesium tracking before notifying us.
+  f.viewer.trackedEntity = undefined;
+  assert.equal(f.layer.contacts.getTrackedInfo(), null);
+  assert.equal(f.viewer.entities.contains(proxy), false);
+  assert.equal(f.viewer.scene.preUpdate.numberOfListeners, 0);
+  assert.equal(f.viewer.scene.screenSpaceCameraController.inertiaZoom, 0.8);
+  assert.equal(
+    f.viewer.scene.screenSpaceCameraController.minimumZoomDistance,
+    1,
+  );
+});
+
+test('another camera owner clears replay selection without losing its own tracking', async (t) => {
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  f.api.track(f.viewer.dataSources.get(1).entities.values[0].id);
+  const proxy = f.viewer.trackedEntity;
+  const other = f.viewer.entities.add({
+    position: Cartesian3.fromDegrees(4.5, 52, 500),
+  });
+  f.viewer.trackedEntity = other;
+  assert.equal(f.viewer.trackedEntity, other);
+  assert.equal(f.layer.contacts.getTrackedInfo(), null);
+  assert.equal(f.viewer.entities.contains(proxy), false);
+  assert.equal(f.viewer.scene.preUpdate.numberOfListeners, 0);
+});
+
+test('cockpit camera handoff retains the hidden replay subject until follow is restored', async (t) => {
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  f.api.track(f.viewer.dataSources.get(1).entities.values[0].id);
+  const proxy = f.viewer.trackedEntity;
+  proxy.show = false;
+  f.viewer.trackedEntity = undefined;
+  assert.equal(f.viewer.entities.contains(proxy), true);
+  assert.equal(f.layer.contacts.getTrackedInfo().id, proxy.gevSimulationId);
+  assert.equal(f.viewer.scene.preUpdate.numberOfListeners, 0);
+  proxy.show = true;
+  f.viewer.trackedEntity = proxy;
+  assert.equal(f.layer.contacts.getTrackedInfo().id, proxy.gevSimulationId);
+  f.layer.contacts.stopTracking();
+  assert.equal(f.layer.contacts.getTrackedInfo(), null);
 });

@@ -332,13 +332,13 @@ body.cockpit-mode:has(#left-panel-stack > .panel-collapsible:not(.collapsed))
 }
 .cockpit-altitude-rim-scale > span {
   position: absolute;
-  top: calc(50% + (var(--slot) * 8%));
+  top: calc(50% - (var(--slot) * 8%));
   right: calc(7px + (var(--curve) * (var(--cockpit-keyhole-radius) - 20px)));
   display: flex;
   align-items: center;
   gap: 6px;
   color: rgba(244, 251, 255, 0.68);
-  transform: translateY(-50%) rotateZ(calc(var(--slot) * -1.7deg));
+  transform: translateY(-50%) rotateZ(calc(var(--slot) * 1.7deg));
   transform-origin: right center;
   transition:
     top 120ms linear,

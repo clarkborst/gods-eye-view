@@ -170,6 +170,85 @@ try {
     ),
     'sim:rotterdam:airliner-departure',
   );
+  // Real canvas gestures must use the same stable follow frame as live traffic.
+  const waitForFollow = () =>
+    page.waitForFunction(() => {
+      const viewer = window.__godsEyeView.viewer;
+      const position = viewer.trackedEntity?.position?.getValue(
+        viewer.clock.currentTime,
+      );
+      if (!position) return false;
+      const transform = viewer.camera.transform;
+      return (
+        Math.hypot(
+          transform[12] - position.x,
+          transform[13] - position.y,
+          transform[14] - position.z,
+        ) < 2
+      );
+    });
+  await waitForFollow();
+  const targetPixel = () =>
+    page.evaluate(() => {
+      const viewer = window.__godsEyeView.viewer;
+      const position = viewer.trackedEntity.position.getValue(
+        viewer.clock.currentTime,
+      );
+      const pixel = viewer.scene.cartesianToCanvasCoordinates(position);
+      const bounds = viewer.scene.canvas.getBoundingClientRect();
+      return { x: pixel.x + bounds.left, y: pixel.y + bounds.top };
+    });
+  const originalRange = await page.evaluate(() => {
+    const p = window.__godsEyeView.viewer.camera.position;
+    return Math.hypot(p.x, p.y, p.z);
+  });
+  assert.ok(
+    originalRange > 2900,
+    'live-style follow distance provides surrounding context',
+  );
+  // Stop following in place, then select the visible model using the actual canvas.
+  const pixel = await targetPixel();
+  await page.evaluate(() =>
+    window.__godsEyeView.dataManager.layers
+      .get('simulated-traffic')
+      .module.contacts.stopTracking(),
+  );
+  await page.mouse.click(pixel.x, pixel.y);
+  await waitForFollow();
+  await page.evaluate(() =>
+    window.__godsEyeView.dataManager.layers
+      .get('simulated-traffic')
+      .module.simulation.seek(420),
+  );
+  await waitForFollow();
+  await page.evaluate(() => {
+    const viewer = window.__godsEyeView.viewer;
+    viewer.camera.zoomIn(1000);
+    viewer.scene.requestRender();
+  });
+  const zoomedPixel = await targetPixel();
+  await page.mouse.click(zoomedPixel.x, zoomedPixel.y, { count: 2, delay: 40 });
+  await waitForFollow();
+  await page.waitForFunction(() => {
+    const p = window.__godsEyeView.viewer.camera.position;
+    return Math.hypot(p.x, p.y, p.z) > 2900;
+  });
+  // Double-clicking empty canvas releases the transform and the replay selection.
+  await page.mouse.click(800, 720, { count: 2, delay: 40 });
+  await page.waitForFunction(() => {
+    const app = window.__godsEyeView;
+    return (
+      !app.viewer.trackedEntity &&
+      !app.dataManager.layers
+        .get('simulated-traffic')
+        .module.contacts.getTrackedInfo() &&
+      app.viewer.camera.transform[12] === 0
+    );
+  });
+  await page.select(
+    `${panel} select[aria-label="Follow simulated vehicle"]`,
+    'sim:rotterdam:airliner-departure',
+  );
   await page.evaluate(() =>
     window.__godsEyeView.styleManager.setPanelCollapsed(
       'global-context-panel',
@@ -221,6 +300,45 @@ try {
       };
     });
     assert.deepEqual(cockpit, { id, simulated: true });
+    if (id === 'sim:rotterdam:airliner-departure') {
+      await page.waitForFunction(() => {
+        const ticks =
+          window.__godsEyeView.styleManager.cockpitView.altitudeRimTicks;
+        const visible = ticks.filter((tick) => !tick.hidden);
+        return (
+          visible.length > 1 &&
+          visible.every(
+            (tick, i) =>
+              i === 0 ||
+              tick.getBoundingClientRect().top <
+                visible[i - 1].getBoundingClientRect().top,
+          )
+        );
+      });
+      const tape = await page.evaluate(() => {
+        const app = window.__godsEyeView;
+        const view = app.styleManager.cockpitView;
+        const info = view.readAircraftInfo();
+        const sample = (altitudeM) => {
+          view.updateHud({ ...info, altitudeM }, performance.now(), true);
+          return view.altitudeRimTicks.map((tick) => ({
+            value: tick.querySelector('b').textContent,
+            slot: Number(tick.style.getPropertyValue('--slot')),
+          }));
+        };
+        const lower = sample(1000),
+          higher = sample(1005);
+        view.updateHud(info, performance.now(), true);
+        return { lower, higher };
+      });
+      const sameTick = tape.higher.find(
+        (tick) => tick.value === tape.lower[4].value,
+      );
+      assert.ok(
+        sameTick && sameTick.slot < tape.lower[4].slot,
+        'increasing altitude moves the same tick downward (negative CSS slot)',
+      );
+    }
     await page.waitForFunction(
       () =>
         document.getElementById('cockpit-clock').textContent ===
@@ -242,6 +360,9 @@ try {
         (node) => node.textContent,
       ),
       'CZML · SIMULATION',
+    );
+    await page.waitForFunction(
+      () => window.__godsEyeView.styleManager.cockpitView.cockpitAnchorValid,
     );
     const anchorBefore = await page.evaluate(() => {
       const a = window.__godsEyeView.styleManager.cockpitView.cockpitAnchor;
@@ -423,7 +544,7 @@ try {
     'simulation Context must never request live ADS-B/AIS traffic',
   );
   console.log(
-    'PASS: GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
+    'PASS: canvas follow and double-click reset, altitude tape direction, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
   );
 } finally {
   await browser.close();

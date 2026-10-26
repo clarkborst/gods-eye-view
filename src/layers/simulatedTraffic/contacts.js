@@ -1,5 +1,16 @@
 import * as Cesium from 'cesium';
 import { classifyAircraft } from '../../data/aircraftClass.js';
+import { applyTrackedCameraFrame } from '../../data/trackedCamera.js';
+import {
+  bindTrackingClickGesture,
+  isTrackingSelectionGesture,
+  isTrackingClickGesture,
+} from '../../data/trackingClickGesture.js';
+import {
+  pickContact,
+  resolvePickId,
+  isOwnedByOtherLayer,
+} from '../../data/pickRegistry.js';
 import { entityCategory } from './scenarios.js';
 import { simulationModelSpec, simulationModelOrientation } from './models.js';
 
@@ -20,6 +31,7 @@ export function createSimulationContacts({
   let proxy = null;
   let handler = null;
   let removeTracked = null;
+  let stopCameraFrame = null;
   let labels = true;
   let modelScale = 1;
   const detectionObjects = new Map();
@@ -107,6 +119,13 @@ export function createSimulationContacts({
       simulationTime: Cesium.JulianDate.toIso8601(time),
     };
   }
+  function frameCamera() {
+    stopCameraFrame?.();
+    const viewer = getViewer();
+    stopCameraFrame = viewer?.scene?.preUpdate
+      ? applyTrackedCameraFrame(viewer, proxy, proxy.viewFrom)
+      : null;
+  }
   const api = {
     isSimulationActive: isActive,
     describe,
@@ -184,21 +203,48 @@ export function createSimulationContacts({
       const viewer = getViewer();
       if (viewer.scene?.canvas) {
         handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-        handler.setInputAction((event) => {
-          const picked = viewer.scene.pick(event.position)?.id;
-          const entity =
-            typeof picked === 'string' ? getEntity(picked) : picked;
-          if (getEntities().includes(entity))
-            api.trackById(entity.id, { origin: 'user' });
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        bindTrackingClickGesture(handler, (event, gesture) => {
+          if (!isTrackingSelectionGesture(gesture)) return;
+          if (globalThis.document?.body?.classList.contains('cockpit-mode'))
+            return;
+          const picked = pickContact(viewer.scene, event.position);
+          const id = resolvePickId(picked);
+          const entity = getEntity(id);
+          if (entity) {
+            if (selectedId !== entity.id)
+              api.trackById(entity.id, { origin: 'user' });
+            return;
+          }
+          if (
+            picked?.id === proxy ||
+            (id && isOwnedByOtherLayer('simulated-traffic', id))
+          )
+            return;
+          if (isTrackingClickGesture(gesture)) api.stopTracking();
+        });
       }
       removeTracked = viewer.trackedEntityChanged?.addEventListener(
         (entity) => {
+          if (entity === proxy) return;
+          // Cockpit hides the proxy before releasing Cesium's follow camera.
+          // Keep the contact alive for first-person telemetry and exit restore.
+          if (!entity && proxy?.show === false) {
+            stopCameraFrame?.();
+            stopCameraFrame = null;
+            return;
+          }
           if (
             getEntities().includes(entity) &&
             air(entity, viewer.clock.currentTime)
-          )
-            api.trackById(entity.id, { origin: 'user' });
+          ) {
+            // Cesium's double-click targets the source entity. Reapply the
+            // shared follow frame even when this contact was already selected.
+            api.refocusTrackedById(entity.id, { origin: 'user' });
+          } else if (proxy) {
+            // Empty-space double-click and another camera owner both release
+            // our selection without clearing the new owner's tracked entity.
+            api.stopTracking();
+          }
         },
       );
     },
@@ -252,11 +298,20 @@ export function createSimulationContacts({
       if (selectedId !== id || !proxy) {
         api.stopTracking();
         selectedId = id;
+        const followRange = Math.min(
+          Math.max(info.altitudeM * 1.1 + 2500, 3000),
+          30000,
+        );
         proxy = viewer.entities.add({
           position: entity.position,
-          orientation: entity.orientation,
+          trackingReferenceFrame: Cesium.TrackingReferenceFrame.ENU,
+          // EntityView only advances when the tracked entity has a ready
+          // visualizer bounding sphere. A position-only proxy frames once but
+          // never follows. This invisible point supplies it without waiting
+          // for the source GLB (and without drawing a duplicate vehicle).
+          point: { pixelSize: 1, color: Cesium.Color.TRANSPARENT },
           viewFrom: new Cesium.ConstantProperty(
-            new Cesium.Cartesian3(-250, -450, 180),
+            new Cesium.Cartesian3(0, -followRange * 0.8, followRange * 0.55),
           ),
         });
         proxy.gevTrackedId = `flights:${id}`;
@@ -270,7 +325,10 @@ export function createSimulationContacts({
         };
       }
       proxy.gevSelectionOrigin = origin;
+      const changed = viewer.trackedEntity !== proxy;
+      viewer.camera.cancelFlight?.();
       viewer.trackedEntity = proxy;
+      if (changed) frameCamera();
       emit('gev:awareness-subject-selected', {
         ...api.getTrackedSubject(),
         origin,
@@ -279,16 +337,23 @@ export function createSimulationContacts({
       return true;
     },
     refocusTrackedById(id, options) {
-      return api.trackById(id, options);
+      const alreadyTracked =
+        selectedId === id && getViewer()?.trackedEntity === proxy;
+      const tracked = api.trackById(id, options);
+      if (tracked && alreadyTracked) frameCamera();
+      return tracked;
     },
     stopTracking() {
       if (!proxy) return;
       const viewer = getViewer();
-      if (viewer?.trackedEntity === proxy) viewer.trackedEntity = undefined;
-      viewer?.entities.remove(proxy);
+      const oldProxy = proxy;
       const id = selectedId;
       selectedId = null;
       proxy = null;
+      stopCameraFrame?.();
+      stopCameraFrame = null;
+      if (viewer?.trackedEntity === oldProxy) viewer.trackedEntity = undefined;
+      viewer?.entities.remove(oldProxy);
       emit('gev:awareness-subject-cleared', {
         layerId: 'flights',
         id,
