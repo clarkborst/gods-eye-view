@@ -93,6 +93,31 @@ export function updateCockpitTape(elements, ticks, formatValue) {
   elements.splice(0, elements.length, ...next);
 }
 
+/** Retain physical compass divisions and position them by fractional bearing.
+ * Circular differences keep north crossings continuous in either direction.
+ * Only newly entering edge ticks are created, without a stale CSS position.
+ */
+export function updateCockpitCompass(tape, heading) {
+  const existing = new Map(
+    Array.from(tape.children, (node) => [Number(node.dataset.bearing), node]),
+  );
+  for (const division of compassDivisions(heading)) {
+    let node = existing.get(division);
+    if (node) existing.delete(division);
+    else {
+      node = tape.ownerDocument.createElement('span');
+      node.dataset.bearing = String(division);
+      node.textContent = compassPointLabel(formatCompassDivision(division));
+      tape.appendChild(node);
+    }
+    const slot = relativeBearing(division, heading) / 30;
+    node.style.setProperty('--slot', slot.toFixed(4));
+    node.style.setProperty('--depth', Math.abs(slot).toFixed(4));
+    node.classList.toggle('active', Math.abs(slot) < 0.5);
+  }
+  for (const node of existing.values()) node.remove();
+}
+
 export function updateHud(
   info,
   nowMs = performance.now(),
@@ -150,19 +175,7 @@ export function updateHud(
     heading,
     { circularRange: 360, immediate: forceContext },
   );
-  if (this.compassTape) {
-    const divisions = compassDivisions(heading);
-    const signature = divisions.join(',');
-    if (signature !== this.lastCompassSignature) {
-      this.lastCompassSignature = signature;
-      this.compassTape.innerHTML = divisions
-        .map((division, index) => {
-          const slot = index - 3;
-          return `<span class="${slot === 0 ? 'active' : ''}" style="--slot:${slot};--depth:${Math.abs(slot)}">${compassPointLabel(formatCompassDivision(division))}</span>`;
-        })
-        .join('');
-    }
-  }
+  if (this.compassTape) updateCockpitCompass(this.compassTape, heading);
   if (this.clock)
     this.clock.textContent =
       (info.simulationTime || new Date().toISOString()).slice(11, 19) + 'Z';

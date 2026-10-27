@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { updateCockpitTape } from './cockpitInstruments.js';
+import {
+  updateCockpitCompass,
+  updateCockpitTape,
+} from './cockpitInstruments.js';
 import { altitudeRulerTicks, speedRulerTicks } from '../cockpitMath.js';
 
 function tape() {
@@ -102,3 +105,52 @@ test('rescaling and seeking replace entering ticks without animating old labels 
   assert.ok(elements.every((node) => !node.hidden));
   updateCockpitTape([], speedRulerTicks(0), String);
 });
+
+function compassTape() {
+  const children = [];
+  return {
+    children,
+    ownerDocument: {
+      createElement() {
+        const node = tape().elements[0];
+        node.dataset = {};
+        node.remove = () => children.splice(children.indexOf(node), 1);
+        return node;
+      },
+    },
+    appendChild(node) {
+      children.push(node);
+    },
+  };
+}
+
+for (const [before, after, bearing] of [
+  [10, 11, 30],
+  [14.9, 15.1, 30],
+  [359.9, 0.1, 0],
+  [0.1, 359.9, 0],
+]) {
+  test(`heading tape moves continuously from ${before} to ${after}`, () => {
+    const tape = compassTape();
+    updateCockpitCompass(tape, before);
+    const node = tape.children.find(
+      (child) => Number(child.dataset.bearing) === bearing,
+    );
+    const slot = Number(node.properties.get('--slot'));
+    const label = node.textContent;
+    updateCockpitCompass(tape, after);
+    assert.ok(
+      tape.children.includes(node),
+      'physical bearing retains its DOM node',
+    );
+    assert.equal(node.textContent, label);
+    const movement = Number(node.properties.get('--slot')) - slot;
+    const headingDelta = ((after - before + 540) % 360) - 180;
+    assert.ok(Math.abs(movement + headingDelta / 30) < 0.00011);
+    assert.equal(tape.children.length, 7);
+    assert.equal(
+      new Set(tape.children.map((child) => child.dataset.bearing)).size,
+      7,
+    );
+  });
+}

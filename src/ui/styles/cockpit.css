@@ -700,6 +700,7 @@ html:not([lang='en']) .cockpit-roll-token.is-separator {
   transform: translateX(calc(-50% + (var(--slot) * 86px)))
     translateY(calc(var(--depth) * 8px)) rotateZ(calc(var(--slot) * 3.6deg))
     rotateY(calc(var(--slot) * -9deg));
+  transition: transform 180ms linear;
 }
 .cockpit-compass-tape span::before {
   content: '';
