@@ -15,7 +15,6 @@ export function createSimulatedTrafficLayer({
 }) {
   let viewer = null;
   let mode = null;
-  let dataManager = null;
   let enabled = false;
   let loading = false;
   let error = null;
@@ -198,10 +197,7 @@ export function createSimulatedTrafficLayer({
         playback.enter(viewer, start, stop);
         for (const data of sources) data.show = true;
         applyVisibility();
-        if (dataManager?.isEnabled('military-awareness')) {
-          const first = contacts.getAllPositions(1)[0];
-          if (first) contacts.trackById(first.id);
-        }
+        api.overview();
         return true;
       } catch (failure) {
         if (generation === epoch && !current.signal.aborted) {
@@ -246,8 +242,17 @@ export function createSimulatedTrafficLayer({
       if (!enabled || !viewer) return;
       contacts.stopTracking();
       viewer.trackedEntity = undefined;
+      const view = SIMULATION_SCENARIOS.find(
+        (scenario) => scenario.id === loadedScenario,
+      )?.view;
+      if (!view) return;
+      viewer.camera.cancelFlight?.();
       viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(4.437, 51.956, 14000),
+        destination: Cesium.Cartesian3.fromDegrees(
+          view.longitude,
+          view.latitude,
+          view.height,
+        ),
         duration: 1.2,
       });
     },
@@ -263,7 +268,6 @@ export function createSimulatedTrafficLayer({
     source: 'CZML · SIMULATION',
     updateInterval: -1,
     attachDataManager(manager) {
-      dataManager = manager;
       mode = createSimulationMode(manager);
     },
     init(target) {
@@ -304,7 +308,6 @@ export function createSimulatedTrafficLayer({
       sources = [];
       await mode?.destroy();
       mode = null;
-      dataManager = null;
       playback.destroy();
       listeners.clear();
       viewer = null;

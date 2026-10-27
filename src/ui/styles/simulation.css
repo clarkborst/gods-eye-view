@@ -22,10 +22,6 @@
   line-height: 1.5;
   opacity: 0.8;
 }
-.simulation-panel output {
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
 .simulation-panel select {
   max-width: 100%;
   min-width: 0;
@@ -57,12 +53,187 @@
   flex-wrap: wrap;
   gap: 6px;
 }
-.simulation-panel input[type='range'] {
-  width: 100%;
-  min-width: 0;
-}
 .simulation-panel button:focus-visible,
 .simulation-panel select:focus-visible {
   outline: 2px solid #55dcee;
   outline-offset: 2px;
+}
+
+/* Session-owned transport: independent of the collapsible Data Layer panel. */
+.simulation-playback {
+  position: fixed;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  width: min(760px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  color: #e0f6fa;
+  border: 1px solid #45616d;
+  border-radius: 58px 10px 10px 58px;
+  background: linear-gradient(135deg, #20313bf5, #0b141df5);
+  box-shadow: 0 6px 24px #0008;
+  font: 10px var(--font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.simulation-playback[hidden] {
+  display: none;
+}
+.simulation-clock {
+  flex: 0 0 96px;
+  height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border-radius: 50%;
+  border: 5px solid #4b5e68;
+  outline: 1px solid #14232c;
+  background: radial-gradient(circle at 40% 35%, #3b505a, #101c25 75%);
+  box-shadow:
+    inset 0 0 0 2px #18242e,
+    inset 0 0 15px #0009;
+}
+.simulation-rate {
+  color: #6de4cb;
+  font-size: 17px;
+  font-weight: 700;
+}
+.simulation-clock-time {
+  font-size: 9px;
+}
+.simulation-primary-transport,
+.simulation-playback-footer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.simulation-primary-transport button {
+  min-width: 24px;
+  padding: 3px;
+}
+.simulation-primary-transport [aria-pressed='true'] {
+  color: #9cffe0;
+  background: #275a51;
+}
+.simulation-timeline {
+  flex: 1;
+  min-width: 0;
+}
+.simulation-timeline-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.simulation-timeline-heading strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8de5ec;
+}
+.simulation-ruler {
+  display: flex;
+  justify-content: space-between;
+  height: 26px;
+  padding-bottom: 10px;
+  background: repeating-linear-gradient(
+      90deg,
+      #8ca9b4 0 1px,
+      transparent 1px 2%
+    )
+    bottom / 100% 7px no-repeat;
+  border-bottom: 1px solid #77919c;
+  font-size: 9px;
+}
+.simulation-playback input[type='range'] {
+  width: 100%;
+  height: 12px;
+  margin: 0 0 6px;
+  min-width: 0;
+}
+.simulation-playback-footer {
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.simulation-playback-footer label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.simulation-playback button,
+.simulation-playback select {
+  font: inherit;
+  color: inherit;
+  border: 1px solid #47616e;
+  border-radius: 4px;
+  background: #1c303d;
+}
+.simulation-playback button {
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.simulation-playback button:disabled,
+.simulation-playback select:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.simulation-playback button:focus-visible,
+.simulation-playback select:focus-visible {
+  outline: 2px solid #55dcee;
+  outline-offset: 2px;
+}
+body:has(.simulation-playback:not([hidden])) #intel-hud .hud-top-bar {
+  top: 214px;
+}
+body:has(.simulation-playback:not([hidden]))
+  #intel-hud
+  :is(.hud-top-left, .hud-top-right) {
+  top: 220px;
+}
+@media (min-width: 721px) {
+  body:has(.simulation-playback:not([hidden])) #left-panel-stack {
+    top: max(26vh, 370px);
+    max-height: calc(100dvh - max(26vh, 370px) - 24px);
+  }
+}
+@media (max-width: 720px) {
+  body.mobile-shell:has(.simulation-playback:not([hidden])) #corner-actions {
+    top: 224px;
+  }
+  .simulation-playback {
+    top: 78px;
+    width: calc(100vw - 24px);
+    gap: 8px;
+    padding-right: 8px;
+  }
+  .simulation-clock {
+    flex-basis: 80px;
+    height: 80px;
+    border-width: 3px;
+  }
+  .simulation-ruler span:nth-child(even) {
+    visibility: hidden;
+  }
+  .simulation-timeline-heading {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .simulation-playback-footer {
+    gap: 4px;
+  }
+  .simulation-playback-footer .simulation-transport {
+    gap: 3px;
+  }
+  .simulation-playback button {
+    padding: 3px;
+  }
+}
+body.recording-mode .simulation-playback,
+body.ui-clean-view .simulation-playback {
+  display: none;
 }

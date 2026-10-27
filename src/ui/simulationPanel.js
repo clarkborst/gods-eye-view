@@ -12,7 +12,7 @@ export function createSimulationPanel({ container, controller }) {
   const document = container.ownerDocument;
   const root = document.createElement('section');
   root.className = 'simulation-panel';
-  root.setAttribute('aria-label', t('Simulation playback'));
+  root.setAttribute('aria-label', t('Simulated Traffic'));
   const removers = [];
   const bind = (node, event, fn) => {
     node.addEventListener(event, fn);
@@ -24,7 +24,7 @@ export function createSimulationPanel({ container, controller }) {
     parent.appendChild(node);
     return node;
   };
-  make('strong', root, t('SIMULATION · Rotterdam Airport'));
+  make('strong', root, t('Simulated Traffic'));
   make(
     'p',
     root,
@@ -37,7 +37,28 @@ export function createSimulationPanel({ container, controller }) {
   scenario.setAttribute('aria-label', t('Simulation scenario'));
   const status = make('p');
   status.setAttribute('role', 'status');
-  const readout = make('output');
+  const playback = make('section', document.body);
+  playback.className = 'simulation-playback';
+  playback.id = 'simulation-playback';
+  playback.setAttribute('aria-label', t('Simulation playback'));
+  const dial = make('div', playback);
+  dial.className = 'simulation-clock';
+  const rateReadout = make('output', dial);
+  rateReadout.className = 'simulation-rate';
+  const readout = make('output', dial);
+  readout.className = 'simulation-clock-time';
+  const primaryTransport = make('div', dial);
+  primaryTransport.className = 'simulation-primary-transport';
+  const timeline = make('div', playback);
+  timeline.className = 'simulation-timeline';
+  const heading = make('div', timeline);
+  heading.className = 'simulation-timeline-heading';
+  const scenarioName = make('strong', heading);
+  const date = make('span', heading);
+  const ruler = make('div', timeline);
+  ruler.className = 'simulation-ruler';
+  const ticks = Array.from({ length: 5 }, () => make('span', ruler));
+  ruler.setAttribute('aria-hidden', 'true');
   const slider = createSlider({
     documentRef: document,
     min: '0',
@@ -46,15 +67,18 @@ export function createSimulationPanel({ container, controller }) {
     value: '0',
     ariaLabel: t('Simulation time'),
   });
-  root.appendChild(slider);
+  timeline.appendChild(slider);
   let dragging = false;
   let resume = false;
   let snapshot = controller.getState();
-  const transport = make('div');
+  const footer = make('div', timeline);
+  footer.className = 'simulation-playback-footer';
+  const transport = make('div', footer);
   transport.className = 'simulation-transport';
   const buttons = [];
   const button = (label, title, action) => {
-    const node = make('button', transport, label);
+    const primary = ['◀◀', t('Play'), '▶▶'].includes(label);
+    const node = make('button', primary ? primaryTransport : transport, label);
     node.type = 'button';
     node.className = 'data-toggle-chip';
     node.title = title;
@@ -88,7 +112,7 @@ export function createSimulationPanel({ container, controller }) {
     controller.pause();
     controller.seek(snapshot.duration);
   });
-  const speedLabel = make('label', root, t('Speed'));
+  const speedLabel = make('label', footer, t('Speed'));
   const speed = make('select', speedLabel);
   speed.setAttribute('aria-label', t('Simulation speed'));
   for (const rate of [
@@ -105,7 +129,9 @@ export function createSimulationPanel({ container, controller }) {
     bind(input, 'change', () => change(input.checked));
     return input;
   };
-  const loop = checkbox(root, t('Loop'), (value) => controller.setLoop(value));
+  const loop = checkbox(footer, t('Loop'), (value) =>
+    controller.setLoop(value),
+  );
   const trails = checkbox(root, t('Trails'), (value) =>
     controller.setTrails(value),
   );
@@ -159,6 +185,7 @@ export function createSimulationPanel({ container, controller }) {
   const unsubscribe = controller.subscribe((state) => {
     snapshot = state;
     root.hidden = !state.enabled;
+    playback.hidden = !state.enabled;
     if (!state.enabled || state.loading) {
       dragging = false;
       resume = false;
@@ -192,16 +219,32 @@ export function createSimulationPanel({ container, controller }) {
     ])
       node.disabled = blocked;
     scenario.disabled = state.loading;
+    rateReadout.textContent = `${state.rate}×`;
+    // i18n-ignore: UTC is a standard time-zone abbreviation.
     readout.textContent = state.current
-      ? `${state.current.replace('T', ' ').replace(/\.\d+Z$/, 'Z')} · ${state.rate}×`
-      : '';
+      ? state.current.slice(11, 19) + ' UTC'
+      : '—';
+    date.textContent = state.current ? state.current.slice(0, 10) : '';
+    scenarioName.textContent = t(
+      state.scenarios.find((item) => item.id === state.scenario)?.name ||
+        'Simulation playback',
+    );
+    const start = state.start ? Date.parse(state.start) : 0;
+    for (let i = 0; i < ticks.length; i++) {
+      ticks[i].textContent = state.start
+        ? new Date(start + (state.duration * 1000 * i) / (ticks.length - 1))
+            .toISOString()
+            .slice(11, 19)
+        : '—';
+    }
     slider.max = String(state.duration || 1);
     if (!dragging) slider.value = String(state.elapsed || 0);
     slider.setAttribute(
       'aria-valuetext',
       state.current || t('No scenario loaded'),
     );
-    play.textContent = state.playing ? t('Pause') : t('Play');
+    play.textContent = state.playing ? 'Ⅱ' : '▶';
+    play.title = state.playing ? t('Pause') : t('Play');
     play.setAttribute('aria-pressed', String(state.playing));
     speed.value = String(state.rate);
     loop.checked = state.loop;
@@ -263,6 +306,7 @@ export function createSimulationPanel({ container, controller }) {
       unsubscribe();
       for (const remove of removers) remove();
       root.remove();
+      playback.remove();
     },
   };
 }

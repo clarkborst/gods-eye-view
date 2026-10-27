@@ -15,8 +15,11 @@ All files cover **26 October 2026, 10:00–10:20 UTC** and can be loaded togethe
 - `ground.czml`: a slow apron inspection robot with stops and a repeated circuit.
 
 The UI offers combined and individual scenarios. Enable **Simulated Traffic** in
-the Movement layer group, then select **View Rotterdam Airport**. Start paused,
-play, reverse, fast-forward, scrub, select a vehicle to follow, or hide categories.
+the Movement layer group. The playback clock and timeline appear below the main
+banner and remain available when the Data Layers panel is collapsed. Selecting a
+scenario automatically frames its location and resets playback to paused at 1×.
+Press Play in the top transport to start; reverse, fast-forward, scrub, select a
+vehicle to follow, or hide categories.
 Turn the layer off to restore live movement and the previous clock policy.
 
 Positions use `cartographicDegrees`: seconds since `epoch`, longitude, latitude,
@@ -38,7 +41,9 @@ switch in the clock/controller. Supply CZML point/billboard/model/path styling.
 For models the layer derives orientation from velocity unless explicit orientation
 is present; hovering vehicles with authored attitude should provide orientation.
 
-Add scenario descriptors in `src/layers/simulatedTraffic/scenarios.js`. Files in a
+Add scenario descriptors in `src/layers/simulatedTraffic/scenarios.js`, including
+`view: { longitude, latitude, height }` (degrees and ellipsoid metres) for automatic
+camera framing. Files in a
 combined scenario share one clock (the union of their document intervals). Keep
 IDs globally unique and use compatible epochs/availability. Scenario URLs are
 bundled same-origin assets; arbitrary remote/local-file imports are not supported.

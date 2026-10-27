@@ -41,7 +41,9 @@ function fixture(t, fetchImpl) {
     isDestroyed: () => false,
     trackedEntityChanged: new Event(),
     camera: {
-      flyTo() {},
+      flyTo(options) {
+        this.lastFlight = options;
+      },
       cancelFlight() {},
       position: new Cartesian3(0, -10000, 5000),
       direction: new Cartesian3(0, 1, 0),
@@ -348,4 +350,35 @@ test('cockpit camera handoff retains the hidden replay subject until follow is r
   assert.equal(f.layer.contacts.getTrackedInfo().id, proxy.gevSimulationId);
   f.layer.contacts.stopTracking();
   assert.equal(f.layer.contacts.getTrackedInfo(), null);
+});
+
+test('scenario selection automatically frames its location and starts paused at 1x', async (t) => {
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  const expected = Cartesian3.fromDegrees(4.437, 51.956, 14000);
+  assert.ok(
+    Cartesian3.equalsEpsilon(
+      f.viewer.camera.lastFlight.destination,
+      expected,
+      1e-10,
+    ),
+  );
+  f.api.setRate(8);
+  f.api.play();
+  f.api.seek(300);
+  f.viewer.camera.lastFlight = null;
+  await f.api.loadScenario('rotterdam-drones');
+  assert.ok(
+    Cartesian3.equalsEpsilon(
+      f.viewer.camera.lastFlight.destination,
+      expected,
+      1e-10,
+    ),
+  );
+  assert.equal(f.api.getState().elapsed, 0);
+  assert.equal(f.api.getState().playing, false);
+  assert.equal(f.api.getState().rate, 1);
+  f.api.play();
+  assert.equal(f.api.getState().playing, true);
+  assert.equal(f.api.getState().rate, 1);
 });

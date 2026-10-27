@@ -45,7 +45,8 @@ try {
   await page.click('[data-collapse-target="data-panel"]');
   const row = '[data-layer-id="simulated-traffic"]';
   const panel = `${row} .simulation-panel`;
-  const button = (label) => `${panel} button[aria-label="${label}"]`;
+  const button = (label) =>
+    `#simulation-playback button[aria-label="${label}"]`;
   await page.click(`${row} .data-toggle-btn`);
   await page.waitForFunction(() => {
     const layer =
@@ -58,6 +59,43 @@ try {
         .get('simulated-traffic')
         .module.simulation.getState(),
     );
+  await page.waitForSelector('#simulation-playback:not([hidden])');
+  const placement = await page.evaluate(() => {
+    const playback = document.getElementById('simulation-playback');
+    const title = document.getElementById('title-bar').getBoundingClientRect();
+    const rect = playback.getBoundingClientRect();
+    return {
+      outsideLayer: !playback.closest('[data-layer-id]'),
+      top: rect.top,
+      titleBottom: title.bottom,
+      classificationTop: document
+        .querySelector('.hud-classification')
+        .getBoundingClientRect().top,
+      bottom: rect.bottom,
+      layerTransport: document.querySelectorAll(
+        '.simulation-panel input[type="range"], .simulation-panel .simulation-transport',
+      ).length,
+    };
+  });
+  assert.equal(placement.outsideLayer, true);
+  assert.equal(placement.layerTransport, 0);
+  assert.ok(
+    placement.top >= placement.titleBottom,
+    'playback sits below the banner',
+  );
+  assert.ok(
+    placement.classificationTop >= placement.bottom,
+    'playback sits above the classification text',
+  );
+  await page.click('[data-collapse-target="data-panel"]');
+  assert.equal(
+    await page.$eval(
+      '#simulation-playback',
+      (node) => node.getBoundingClientRect().width > 0,
+    ),
+    true,
+  );
+  await page.click('[data-collapse-target="data-panel"]');
   assert.equal((await state()).vehicles.length, 6);
   assert.equal((await state()).playing, false);
   checkingSimulation = true;
@@ -127,7 +165,7 @@ try {
       return [p.x, p.y, p.z];
     });
   const before = await position();
-  await page.$eval(`${panel} input[type="range"]`, (node) => {
+  await page.$eval(`#simulation-playback input[type="range"]`, (node) => {
     node.value = '400';
     node.dispatchEvent(new Event('input', { bubbles: true }));
     node.dispatchEvent(new Event('change', { bubbles: true }));
@@ -475,6 +513,16 @@ try {
       !s.loading && s.scenario === 'rotterdam-ground' && s.vehicles.length === 1
     );
   });
+  await page.waitForFunction(() => {
+    const viewer = window.__godsEyeView.viewer;
+    const location = viewer.camera.positionCartographic;
+    return (
+      Math.abs(location.height - 14000) < 50 &&
+      Math.abs((location.latitude * 180) / Math.PI - 51.956) < 0.01
+    );
+  });
+  assert.equal((await state()).rate, 1);
+  assert.equal((await state()).playing, false);
   await page.select(
     `${panel} select[aria-label="Simulation scenario"]`,
     'rotterdam-mixed',
@@ -485,7 +533,7 @@ try {
         .get('simulated-traffic')
         .module.simulation.getState().vehicles.length === 6,
   );
-  await page.$eval(`${panel} input[type="range"]`, (node) => {
+  await page.$eval(`#simulation-playback input[type="range"]`, (node) => {
     node.value = '520';
     node.dispatchEvent(new Event('input', { bubbles: true }));
     node.dispatchEvent(new Event('change', { bubbles: true }));
@@ -515,6 +563,7 @@ try {
         .find((row) => row.id.endsWith('airliner-arrival')).position,
   );
   await page.click(`${row} .data-toggle-btn`);
+  await page.waitForSelector('#simulation-playback[hidden]', { hidden: true });
   checkingSimulation = false;
   await page.waitForFunction(
     () => !window.__godsEyeView.dataManager.isEnabled('simulated-traffic'),
@@ -578,6 +627,7 @@ try {
     return {
       status: application.getState().status,
       viewerDestroyed: app.viewer.isDestroyed(),
+      playbackNodes: document.querySelectorAll('.simulation-playback').length,
       layers: app.dataManager.layers.size,
       holds: app.getRenderGovernorDiagnostics().holds,
     };
@@ -585,6 +635,7 @@ try {
   assert.deepEqual(destroyed, {
     status: 'destroyed',
     viewerDestroyed: true,
+    playbackNodes: 0,
     layers: 0,
     holds: [],
   });
@@ -595,7 +646,7 @@ try {
     'simulation Context must never request live ADS-B/AIS traffic',
   );
   console.log(
-    'PASS: canvas follow and double-click reset, continuous speed/altitude tapes, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
+    'PASS: top playback timeline, canvas follow and double-click reset, continuous speed/altitude tapes, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
   );
 } finally {
   await browser.close();
