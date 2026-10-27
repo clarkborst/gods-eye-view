@@ -2857,5 +2857,8 @@
   "Scenario ready · times shown in UTC": "场景就绪 · 时间以 UTC 显示",
   "No scenario loaded": "未加载场景",
   "Vehicle labels": "载具标签",
-  "Vehicle model size": "载具模型大小"
+  "Vehicle model size": "载具模型大小",
+  "Rotterdam Simulation": "鹿特丹模拟",
+  "Replay aircraft and drone traffic around Rotterdam Airport": "回放鹿特丹机场周边的飞机和无人机交通",
+  "Opening Rotterdam simulation…": "正在打开鹿特丹模拟…"
 }

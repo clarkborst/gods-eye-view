@@ -3058,5 +3058,8 @@
   "Scenario ready · times shown in UTC": "Сценарий готов · время в UTC",
   "No scenario loaded": "Сценарий не загружен",
   "Vehicle labels": "Подписи объектов",
-  "Vehicle model size": "Размер моделей объектов"
+  "Vehicle model size": "Размер моделей объектов",
+  "Rotterdam Simulation": "Симуляция Роттердама",
+  "Replay aircraft and drone traffic around Rotterdam Airport": "Воспроизведение движения самолётов и дронов вокруг аэропорта Роттердама",
+  "Opening Rotterdam simulation…": "Открытие симуляции Роттердама…"
 }

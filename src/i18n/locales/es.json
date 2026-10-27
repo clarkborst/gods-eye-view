@@ -2991,5 +2991,8 @@
   "Scenario ready · times shown in UTC": "Escenario listo · horas en UTC",
   "No scenario loaded": "Ningún escenario cargado",
   "Vehicle labels": "Etiquetas de vehículos",
-  "Vehicle model size": "Tamaño de modelos de vehículos"
+  "Vehicle model size": "Tamaño de modelos de vehículos",
+  "Rotterdam Simulation": "Simulación de Róterdam",
+  "Replay aircraft and drone traffic around Rotterdam Airport": "Reproduce el tráfico de aviones y drones alrededor del aeropuerto de Róterdam",
+  "Opening Rotterdam simulation…": "Abriendo la simulación de Róterdam…"
 }

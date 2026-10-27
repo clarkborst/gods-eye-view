@@ -122,6 +122,11 @@ export const FIRST_RUN_MISSIONS = Object.freeze({
     layerIds: Object.freeze(['earthquakes', 'local-firms']),
     busyKey: msg('Scanning active events…'),
   }),
+  'rotterdam-simulation': Object.freeze({
+    kind: 'layers',
+    layerIds: Object.freeze(['simulated-traffic']),
+    busyKey: msg('Opening Rotterdam simulation…'),
+  }),
   explore: Object.freeze({ kind: 'none' }),
 });
 
@@ -282,9 +287,13 @@ export async function runFirstRunChoice(
   // Globe missions: start the pull-out and the layer work together so the
   // camera is already moving while the feeds spin up. The flight is framing,
   // not the mission — a stalled or superseded flight never fails the tile.
-  const flight = Promise.resolve()
-    .then(() => flyToGlobe())
-    .catch(() => null);
+  // Simulation owns its scenario framing; avoid a competing globe flight.
+  const flight =
+    mission.kind === 'globe'
+      ? Promise.resolve()
+          .then(() => flyToGlobe())
+          .catch(() => null)
+      : Promise.resolve();
   const outcomes = await Promise.all(
     mission.layerIds.map(async (layerId) => {
       try {
