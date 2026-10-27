@@ -66,6 +66,8 @@ try {
     const rect = playback.getBoundingClientRect();
     return {
       outsideLayer: !playback.closest('[data-layer-id]'),
+      width: rect.width,
+      height: rect.height,
       top: rect.top,
       titleBottom: title.bottom,
       classificationTop: document
@@ -86,6 +88,34 @@ try {
   assert.ok(
     placement.classificationTop >= placement.bottom,
     'playback sits above the classification text',
+  );
+  await page.click('#simulation-playback .simulation-size-toggle');
+  const compact = await page.$eval('#simulation-playback', (node) => ({
+    width: node.getBoundingClientRect().width,
+    height: node.getBoundingClientRect().height,
+    expanded: node
+      .querySelector('.simulation-size-toggle')
+      .getAttribute('aria-expanded'),
+  }));
+  assert.equal(compact.width, placement.width);
+  assert.ok(
+    compact.height < placement.height / 2,
+    'compact mode is a compressed bar',
+  );
+  assert.equal(compact.expanded, 'false');
+  await page.keyboard.press('Enter'); // The same focused button restores the full UI.
+  const expanded = await page.$eval('#simulation-playback', (node) => ({
+    width: node.getBoundingClientRect().width,
+    height: node.getBoundingClientRect().height,
+  }));
+  assert.deepEqual(expanded, {
+    width: placement.width,
+    height: placement.height,
+  });
+  assert.equal(
+    (await state()).playing,
+    false,
+    'changing UI size never starts playback',
   );
   await page.click('[data-collapse-target="data-panel"]');
   assert.equal(
@@ -562,6 +592,7 @@ try {
         .module.contacts.getAllPositions()
         .find((row) => row.id.endsWith('airliner-arrival')).position,
   );
+  await page.click('#simulation-playback .simulation-size-toggle');
   await page.click(`${row} .data-toggle-btn`);
   await page.waitForSelector('#simulation-playback[hidden]', { hidden: true });
   checkingSimulation = false;
@@ -639,6 +670,141 @@ try {
     layers: 0,
     holds: [],
   });
+  const periods = await page.evaluate(async () => {
+    const { createSimulationPanel } =
+      await import('/src/ui/simulationPanel.js');
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    let listener, current;
+    let unsubscribed = false;
+    const base = {
+      enabled: true,
+      active: true,
+      loading: false,
+      error: null,
+      playing: false,
+      rate: 1,
+      loop: false,
+      trails: true,
+      labels: true,
+      modelScale: 1,
+      categories: [],
+      vehicles: [],
+      scenario: 'long',
+      scenarios: [
+        {
+          id: 'long',
+          name: 'A long scenario title that must never expand the timeline beyond its fixed frame',
+        },
+      ],
+    };
+    const publish = (duration) => {
+      current = {
+        ...base,
+        duration,
+        elapsed: 0,
+        start: '2026-10-26T10:00:00Z',
+        current: '2026-10-26T10:00:00Z',
+        stop: new Date(
+          Date.parse('2026-10-26T10:00:00Z') + duration * 1000,
+        ).toISOString(),
+      };
+      listener?.(current);
+    };
+    publish(1200);
+    const component = createSimulationPanel({
+      container: host,
+      controller: {
+        getState: () => current,
+        subscribe(fn) {
+          listener = fn;
+          fn(current);
+          return () => {
+            listener = null;
+            unsubscribed = true;
+          };
+        },
+        pause() {},
+        play() {},
+        seek(elapsed) {
+          current = { ...current, elapsed };
+          listener(current);
+        },
+      },
+    });
+    const playback = document.getElementById('simulation-playback');
+    const toggle = playback.querySelector('.simulation-size-toggle');
+    const result = [];
+    for (const duration of [1200, 3 * 86400, 10 * 366 * 86400]) {
+      publish(duration);
+      const expanded = playback.getBoundingClientRect();
+      toggle.click();
+      const compact = playback.getBoundingClientRect();
+      const slider = playback.querySelector('input[type="range"]');
+      slider.value = String(duration);
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+      slider.dispatchEvent(new Event('change', { bubbles: true }));
+      result.push({
+        expandedWidth: expanded.width,
+        compactWidth: compact.width,
+        compactHeight: compact.height,
+        overflow: playback.scrollWidth > playback.clientWidth,
+        endSeek: current.elapsed === duration,
+      });
+      toggle.click();
+    }
+    window.__playbackUiFixture = {
+      component,
+      host,
+      playback,
+      toggle,
+      getUnsubscribed: () => unsubscribed,
+    };
+    return result;
+  });
+  for (const period of periods) {
+    assert.equal(period.expandedWidth, placement.width);
+    assert.equal(period.compactWidth, placement.width);
+    assert.equal(period.overflow, false);
+    assert.equal(
+      period.endSeek,
+      true,
+      'the full long scenario remains seekable',
+    );
+    assert.ok(period.compactHeight < placement.height / 2);
+  }
+  await page.setViewport({ width: 390, height: 844 });
+  const mobile = await page.evaluate(() => {
+    const { playback, toggle } = window.__playbackUiFixture;
+    const full = playback.getBoundingClientRect();
+    toggle.click();
+    const compact = playback.getBoundingClientRect();
+    return {
+      fullWidth: full.width,
+      compactWidth: compact.width,
+      fullHeight: full.height,
+      compactHeight: compact.height,
+      left: compact.left,
+      right: compact.right,
+      overflow: playback.scrollWidth > playback.clientWidth,
+    };
+  });
+  assert.equal(mobile.fullWidth, mobile.compactWidth);
+  assert.ok(mobile.left >= 0 && mobile.right <= 390);
+  assert.ok(mobile.compactHeight < mobile.fullHeight / 2);
+  assert.equal(mobile.overflow, false);
+  const cleanup = await page.evaluate(() => {
+    const fixture = window.__playbackUiFixture;
+    fixture.component.destroy();
+    fixture.host.remove();
+    const unsubscribed = fixture.getUnsubscribed();
+    delete window.__playbackUiFixture;
+    return {
+      unsubscribed,
+      count: document.querySelectorAll('.simulation-playback').length,
+    };
+  });
+  assert.deepEqual(cleanup, { unsubscribed: true, count: 0 });
   assert.deepEqual(errors, []);
   assert.deepEqual(
     liveRequests,
@@ -646,7 +812,7 @@ try {
     'simulation Context must never request live ADS-B/AIS traffic',
   );
   console.log(
-    'PASS: top playback timeline, canvas follow and double-click reset, continuous speed/altitude tapes, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
+    'PASS: compact/expanded fixed-width playback, long-duration seeking, top playback timeline, canvas follow and double-click reset, continuous speed/altitude tapes, GLB heading, cockpit bank, live/replay altitude poles, shared identification, replay controls, CZML-only Context, preference restoration and teardown',
   );
 } finally {
   await browser.close();

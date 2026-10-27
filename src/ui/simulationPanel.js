@@ -1,6 +1,15 @@
 import { t } from '../i18n/index.js';
 import { createSlider } from './slider.js';
 
+/** Fixed-count UTC labels keep long scenarios legible without widening the UI. */
+export function formatSimulationTick(milliseconds, durationSeconds) {
+  const iso = new Date(milliseconds).toISOString();
+  if (durationSeconds >= 365 * 86400) return iso.slice(0, 10);
+  if (durationSeconds >= 86400)
+    return `${iso.slice(5, 10)} ${iso.slice(11, 16)}`;
+  return iso.slice(11, 19);
+}
+
 /** A continuous-time transport; categories are discovered from scenario metadata. */
 export function createSimulationPanel({ container, controller }) {
   const categoryLabel = (id) =>
@@ -41,8 +50,29 @@ export function createSimulationPanel({ container, controller }) {
   playback.className = 'simulation-playback';
   playback.id = 'simulation-playback';
   playback.setAttribute('aria-label', t('Simulation playback'));
+  const sizeToggle = make('button', playback);
+  sizeToggle.type = 'button';
+  sizeToggle.className = 'simulation-size-toggle';
+  sizeToggle.setAttribute(
+    'aria-controls',
+    'simulation-clock simulation-timeline',
+  );
+  let compact = false;
+  const updateSize = () => {
+    playback.classList.toggle('is-compact', compact);
+    sizeToggle.textContent = compact ? '□' : '−';
+    sizeToggle.title = compact ? t('Expand panel') : t('Collapse panel');
+    sizeToggle.setAttribute('aria-label', sizeToggle.title);
+    sizeToggle.setAttribute('aria-expanded', String(!compact));
+  };
+  bind(sizeToggle, 'click', () => {
+    compact = !compact;
+    updateSize();
+  });
+  updateSize();
   const dial = make('div', playback);
   dial.className = 'simulation-clock';
+  dial.id = 'simulation-clock';
   const rateReadout = make('output', dial);
   rateReadout.className = 'simulation-rate';
   const readout = make('output', dial);
@@ -51,6 +81,7 @@ export function createSimulationPanel({ container, controller }) {
   primaryTransport.className = 'simulation-primary-transport';
   const timeline = make('div', playback);
   timeline.className = 'simulation-timeline';
+  timeline.id = 'simulation-timeline';
   const heading = make('div', timeline);
   heading.className = 'simulation-timeline-heading';
   const scenarioName = make('strong', heading);
@@ -58,6 +89,9 @@ export function createSimulationPanel({ container, controller }) {
   const ruler = make('div', timeline);
   ruler.className = 'simulation-ruler';
   const ticks = Array.from({ length: 5 }, () => make('span', ruler));
+  ticks.forEach((tick, index) => {
+    tick.style.left = `${(100 * index) / (ticks.length - 1)}%`;
+  });
   ruler.setAttribute('aria-hidden', 'true');
   const slider = createSlider({
     documentRef: document,
@@ -225,6 +259,9 @@ export function createSimulationPanel({ container, controller }) {
       ? state.current.slice(11, 19) + ' UTC'
       : '—';
     date.textContent = state.current ? state.current.slice(0, 10) : '';
+    readout.title = state.current || '';
+    slider.title =
+      state.start && state.stop ? `${state.start} → ${state.stop}` : '';
     scenarioName.textContent = t(
       state.scenarios.find((item) => item.id === state.scenario)?.name ||
         'Simulation playback',
@@ -232,9 +269,10 @@ export function createSimulationPanel({ container, controller }) {
     const start = state.start ? Date.parse(state.start) : 0;
     for (let i = 0; i < ticks.length; i++) {
       ticks[i].textContent = state.start
-        ? new Date(start + (state.duration * 1000 * i) / (ticks.length - 1))
-            .toISOString()
-            .slice(11, 19)
+        ? formatSimulationTick(
+            start + (state.duration * 1000 * i) / (ticks.length - 1),
+            state.duration,
+          )
         : '—';
     }
     slider.max = String(state.duration || 1);
