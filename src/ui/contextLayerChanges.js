@@ -1,3 +1,4 @@
+import { LIVE_MOVEMENT_LAYERS } from '../simulationModePolicy.js';
 import { t, translateKnown } from '../i18n/index.js';
 import {
   SPACE_MISSIONS_LAYER_BLOCK_REASON,
@@ -174,6 +175,39 @@ export function _handleContextLayerChange(change) {
     restoreState: this._contextRestoreState,
     change,
   });
+  // Mode-owned suspension/restoration is not a request to restore an older
+  // Context snapshot. Wait for the simulation toggle itself to settle below.
+  if (
+    change.type === 'visibility' &&
+    change.origin === 'simulation-mode' &&
+    LIVE_MOVEMENT_LAYERS.includes(change.layerId)
+  ) {
+    if (this.cockpitView?.active)
+      this.cockpitView.exit({ restoreTracking: false });
+    this._syncContextModeButtons();
+    return;
+  }
+  // Switching clock/source mode ends the old Contacts camera session. Its
+  // snapshot must not resurrect replay or undo the new mode's live visibility.
+  if (
+    change.type === 'visibility' &&
+    change.layerId === 'simulated-traffic' &&
+    !this._contextModeChanging
+  ) {
+    if (this.cockpitView?.active)
+      this.cockpitView.exit({ restoreTracking: false });
+    if (this._contextMode === 'flights' || this._contextSessionSnapshot) {
+      void this._trackContextLayerReaction(
+        this._runUserFacingContextAction((notificationToken) =>
+          this._deactivateContextForLayerChange({
+            notificationToken,
+            preserveMovementState: true,
+          }),
+        ),
+      );
+      return;
+    }
+  }
   if (
     shouldExitContextForLayerChange({
       contextMode: this._contextMode,
@@ -230,6 +264,7 @@ export function _handleContextLayerChange(change) {
       }
     } else if (
       this._contextMode === 'flights' &&
+      change.origin !== 'simulation-mode' &&
       [
         'flights',
         'military',

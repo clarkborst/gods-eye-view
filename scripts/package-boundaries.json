@@ -597,7 +597,8 @@
       "src/i18n/locales/es.json",
       "src/i18n/locales/ru.json",
       "src/i18n/locales/zh-CN.json",
-      "src/ui/layerNames.js"
+      "src/ui/layerNames.js",
+      "src/simulationModePolicy.js"
     ],
     "external": []
   },
@@ -808,7 +809,8 @@
       "src/ui/statusText.js",
       "src/ui/statusBadge.js",
       "src/scopeMaskPolicy.js",
-      "src/ui/simulationPanel.js"
+      "src/ui/simulationPanel.js",
+      "src/simulationModePolicy.js"
     ],
     "external": ["cesium"]
   },
@@ -924,7 +926,8 @@
       "src/i18n/locales/es.json",
       "src/i18n/locales/ru.json",
       "src/i18n/locales/zh-CN.json",
-      "src/ui/unitLabels.js"
+      "src/ui/unitLabels.js",
+      "src/simulationModePolicy.js"
     ],
     "external": ["cesium"]
   },
@@ -2588,7 +2591,8 @@
       "src/layers/simulatedTraffic/contacts.js",
       "src/layers/simulatedTraffic/models.js",
       "src/app/layers/simulationContacts.js",
-      "src/app/altitudeLines.js"
+      "src/app/altitudeLines.js",
+      "src/simulationModePolicy.js"
     ],
     "external": [
       "hls.js",
@@ -3164,7 +3168,8 @@
       "src/layers/simulatedTraffic/scenarios.js",
       "src/layers/simulatedTraffic/contacts.js",
       "src/layers/simulatedTraffic/models.js",
-      "src/app/layers/simulationContacts.js"
+      "src/app/layers/simulationContacts.js",
+      "src/simulationModePolicy.js"
     ],
     "external": [
       "hls.js",
@@ -4073,7 +4078,8 @@
       "src/contextModePolicy.js",
       "src/loadingFeedback.js",
       "src/data/installationFeedback.js",
-      "src/i18n/marker.js"
+      "src/i18n/marker.js",
+      "src/simulationModePolicy.js"
     ],
     "external": ["cesium"]
   }

@@ -1,16 +1,6 @@
+import { LIVE_MOVEMENT_LAYERS } from '../../simulationModePolicy.js';
+export { LIVE_MOVEMENT_LAYERS } from '../../simulationModePolicy.js';
 const msg = (text) => text;
-/** Live moving layers are suspended while the scenario owns viewer time. */
-export const LIVE_MOVEMENT_LAYERS = Object.freeze([
-  'flights',
-  'military',
-  'local-adsb',
-  'satellites',
-  'rocket-launches',
-  'ais-live-vessels',
-  'traffic',
-  'transit',
-  'bikeshare',
-]);
 const ORIGIN = 'simulation-mode';
 export function createSimulationMode(manager) {
   let active = false;

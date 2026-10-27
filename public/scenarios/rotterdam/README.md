@@ -57,6 +57,7 @@ With the development server running, execute:
 
 ```sh
 PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium npm run qa:simulation
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium node scripts/qa-traffic-modes.mjs
 ```
 
 Use your installed Chromium/Chrome executable path, or omit the variable when
@@ -76,6 +77,12 @@ classifier. A `drone` uses the original `public/models/quadcopter.glb` survey-dr
 model. Other categories keep their authored CZML graphics. The replay panel includes label visibility and
 model-size controls, and clicking an aircraft/drone selects its normal
 tracked readout and follow camera.
+
+**Simulated Traffic is the only live/replay mode switch.** Context never enables
+or disables replay when opening, closing, or restoring its layer snapshot.
+Switching modes closes the previous Contacts/cockpit session; reopen Contacts to
+select traffic from the new mode. Live movement stays blocked until Simulated
+Traffic is explicitly turned off, which restores the previous live selection.
 
 With simulation enabled, open **Context → Contacts**, select an aircraft or aerial
 drone, then choose **Cockpit**. Context routes its aircraft interface to CZML only:
