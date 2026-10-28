@@ -180,6 +180,9 @@ const CITY_ALIASES = new Map([
 // cleanly and then fail at the controller with "Unknown map stack", which reads
 // to the operator as a broken command rather than a retired source.
 const STACK_ALIASES = new Map([
+  ['atc', 'atc'],
+  ['atc radar', 'atc'],
+  ['air traffic control', 'atc'],
   ['photoreal', 'photoreal'],
   ['google 3d', 'photoreal'],
   ['google', 'photoreal'],

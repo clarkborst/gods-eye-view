@@ -3061,5 +3061,17 @@
   "Vehicle model size": "Размер моделей объектов",
   "Rotterdam Simulation": "Симуляция Роттердама",
   "Replay aircraft and drone traffic around Rotterdam Airport": "Воспроизведение движения самолётов и дронов вокруг аэропорта Роттердама",
-  "Opening Rotterdam simulation…": "Открытие симуляции Роттердама…"
+  "Opening Rotterdam simulation…": "Открытие симуляции Роттердама…",
+  "MAP PRESENTATION": "ВИД КАРТЫ",
+  "Map presentation": "Вид карты",
+  "Geographic": "Географическая",
+  "ATC": "УВД",
+  "Line color": "Цвет линий",
+  "Line color shortcuts": "Быстрый выбор цвета линий",
+  "White": "Белый",
+  "Line brightness": "Яркость линий",
+  "Line width": "Толщина линий",
+  "Coastlines": "Береговые линии",
+  "Country borders": "Границы стран",
+  "VISUAL EFFECT": "ВИЗУАЛЬНЫЙ ЭФФЕКТ"
 }

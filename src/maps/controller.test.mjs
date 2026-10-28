@@ -1382,3 +1382,74 @@ test('a hung imagery attempt that lands after its deadline is released, never ca
   await settle();
   assert.equal(good.destroyed, true);
 });
+
+test('self-hosted presentation switches are atomic, supersedable and release resources', async () => {
+  let enter = 0,
+    exit = 0,
+    destroyed = 0,
+    fail = false,
+    unblock;
+  const presentation = {
+    enter() {
+      enter++;
+    },
+    exit() {
+      exit++;
+    },
+    setSettings() {},
+    destroy() {
+      destroyed++;
+    },
+  };
+  const registry = {
+    defaultId: 'geo',
+    unknownId: 'geo',
+    sources: [
+      { descriptor: { id: 'geo' }, imagery: async () => ({}) },
+      {
+        descriptor: { id: 'atc' },
+        createPresentation: async () => {
+          if (fail) throw new Error('missing coastlines');
+          await new Promise((resolve) => {
+            unblock = resolve;
+          });
+          return presentation;
+        },
+      },
+    ],
+  };
+  const f = fixture(registry, { initialStack: 'geo' });
+  await f.controller.setStack('geo');
+  const pending = f.controller.setStack('atc');
+  await settle();
+  assert.equal(
+    f.imagery.length,
+    1,
+    'geographic map remains while ATC prepares',
+  );
+  await f.controller.setStack('geo');
+  unblock();
+  await pending;
+  assert.equal(enter, 0);
+  assert.equal(f.controller.getActiveId(), 'geo');
+  await f.controller.setStack('atc');
+  assert.equal(enter, 1);
+  assert.equal(f.imagery.length, 0);
+  f.controller.setAtcSettings({ color: '#00ffff' });
+  assert.equal(f.controller.getState().atcSettings.color, '#00ffff');
+  await f.controller.setStack('geo');
+  assert.equal(exit, 1);
+  assert.equal(f.imagery.length, 1);
+  f.controller.destroy();
+  await settle();
+  assert.equal(destroyed, 1);
+
+  fail = true;
+  const bad = fixture(registry, { initialStack: 'geo' });
+  await bad.controller.setStack('geo');
+  const state = await bad.controller.setStack('atc');
+  assert.equal(state.activeId, 'geo');
+  assert.match(state.lastError, /coastlines/);
+  assert.equal(bad.imagery.length, 1);
+  bad.controller.destroy();
+});

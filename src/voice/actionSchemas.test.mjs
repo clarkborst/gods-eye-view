@@ -45,7 +45,8 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // S2 GhostMaps extends the generated layer enums.
     // Panel adds named voice targets and timeout; shared Panel/Cockpit guidance
     // is consolidated without changing either feature's arguments.
-    '9ee82c4214499280c208c93751b19d7b724c81b7727a2d0c6dab0184749fbe15',
+    // ATC adds a map enum and concise self-hosted presentation wording.
+    '8a24119200c6cfc961ae46fbf5f237d33a215cd2b0ee9382a99eabd669bdc220',
   );
 });
 
@@ -169,6 +170,10 @@ test('all legacy action arguments are byte-identical after removing the delibera
   // Cyber adds one HUD layout.
   const hud = property('set_hud').layout;
   hud.enum = hud.enum.filter((layout) => layout !== 'cyber');
+  // ATC is an additive map option; all prior action arguments stay identical.
+  const map = property('set_map_stack').stack;
+  assert.ok(map.enum.includes('atc'));
+  map.enum = map.enum.filter((id) => id !== 'atc');
   // Derived by applying the same removals to the 4b56d0e9 actionSchemas.
   assert.equal(
     createHash('sha256').update(JSON.stringify(legacy)).digest('hex'),

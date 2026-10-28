@@ -8,6 +8,8 @@ import { t } from '../i18n/index.js';
 export function createMapSourceControls({
   container,
   statusElement,
+  presentationContainer = null,
+  atcSettingsContainer = null,
   controller,
   subscribe,
   claimSelection = () => {},
@@ -17,6 +19,10 @@ export function createMapSourceControls({
   let destroyed = false;
   let generation = 0;
   const removers = [];
+  let geographicId =
+    controller.getActiveId() === 'atc'
+      ? 'esri-imagery'
+      : controller.getActiveId();
   const bind = (element, type, listener) => {
     element.addEventListener(type, listener);
     removers.push(() => element.removeEventListener(type, listener));
@@ -24,6 +30,28 @@ export function createMapSourceControls({
   function render(state) {
     if (destroyed || !state) return;
     syncMapStackChips(container, state.activeId);
+    const atc = state.activeId === 'atc';
+    if (!atc) geographicId = state.activeId;
+    for (const button of presentationContainer?.querySelectorAll(
+      '[data-map-presentation]',
+    ) || []) {
+      const active = (button.dataset.mapPresentation === 'atc') === atc;
+      button.setAttribute('aria-pressed', String(active));
+      button.classList.toggle('active', active);
+    }
+    if (presentationContainer && container.closest)
+      container.closest('.map-source-section').hidden = atc;
+    if (atcSettingsContainer) {
+      atcSettingsContainer.hidden = !atc;
+      for (const input of atcSettingsContainer.querySelectorAll(
+        '[data-atc-setting]',
+      )) {
+        const value = state.atcSettings?.[input.dataset.atcSetting];
+        if (value === undefined) continue;
+        if (input.type === 'checkbox') input.checked = value;
+        else input.value = String(value);
+      }
+    }
     if (statusElement) {
       const stack = state.activeStack;
       statusElement.textContent =
@@ -66,6 +94,37 @@ export function createMapSourceControls({
       },
       bind,
     });
+    for (const button of presentationContainer?.querySelectorAll(
+      '[data-map-presentation]',
+    ) || [])
+      bind(button, 'click', () => {
+        const id =
+          button.dataset.mapPresentation === 'atc' ? 'atc' : geographicId;
+        void select(id).catch(() => {});
+      });
+    const updateSettings = (patch) => {
+      render(controller.setAtcSettings(patch));
+      onStateChanged();
+    };
+    for (const input of atcSettingsContainer?.querySelectorAll(
+      '[data-atc-setting]',
+    ) || [])
+      bind(input, 'input', () =>
+        updateSettings({
+          [input.dataset.atcSetting]:
+            input.type === 'checkbox'
+              ? input.checked
+              : input.type === 'color'
+                ? input.value
+                : Number(input.value),
+        }),
+      );
+    for (const button of atcSettingsContainer?.querySelectorAll(
+      '[data-atc-color]',
+    ) || [])
+      bind(button, 'click', () =>
+        updateSettings({ color: button.dataset.atcColor }),
+      );
     render(controller.getState());
   }
   const unsubscribe = subscribe(() => {

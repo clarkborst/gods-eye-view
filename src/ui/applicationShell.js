@@ -928,6 +928,10 @@ export class StyleManager extends ShellFacade {
     this._mapSourceControls?.destroy();
     this._mapSourceControls = createMapSourceControls({
       container: this._mapStackChips,
+      presentationContainer: document.getElementById(
+        'map-presentation-controls',
+      ),
+      atcSettingsContainer: document.getElementById('atc-map-settings'),
       statusElement: this._mapStackStatus,
       controller: this.mapStackController,
       subscribe: (onChange) => {

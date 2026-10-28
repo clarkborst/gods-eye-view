@@ -2860,5 +2860,17 @@
   "Vehicle model size": "载具模型大小",
   "Rotterdam Simulation": "鹿特丹模拟",
   "Replay aircraft and drone traffic around Rotterdam Airport": "回放鹿特丹机场周边的飞机和无人机交通",
-  "Opening Rotterdam simulation…": "正在打开鹿特丹模拟…"
+  "Opening Rotterdam simulation…": "正在打开鹿特丹模拟…",
+  "MAP PRESENTATION": "地图呈现",
+  "Map presentation": "地图呈现",
+  "Geographic": "地理地图",
+  "ATC": "空管",
+  "Line color": "线条颜色",
+  "Line color shortcuts": "线条颜色快捷选项",
+  "White": "白色",
+  "Line brightness": "线条亮度",
+  "Line width": "线条宽度",
+  "Coastlines": "海岸线",
+  "Country borders": "国家边界",
+  "VISUAL EFFECT": "视觉效果"
 }

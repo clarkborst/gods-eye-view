@@ -12,6 +12,7 @@
       </button>
       <div id="control-panel-popover" class="dock-popover-content">
       <button class="dock-pin-btn" data-pin-target="control-panel" type="button" aria-label="Pin visual presets" aria-pressed="false" title="Keep visual presets open" data-i18n-aria-label data-i18n-title><img src="/pin.svg" alt="" /></button>
+      <div class="map-source-heading"><span data-i18n>VISUAL EFFECT</span></div>
       <div id="style-buttons" class="button-grid">
         <button class="style-btn active" data-style="normal" title="Show the globe without a visual filter." data-i18n-title>
           <span class="btn-icon">◯</span>
@@ -49,6 +50,26 @@
           <span class="btn-key">7</span>
         </button>
       </div>
+      <section class="map-source-section" aria-labelledby="map-presentation-label">
+        <div class="map-source-heading"><span id="map-presentation-label" data-i18n>MAP PRESENTATION</span></div>
+        <div id="map-presentation-controls" class="map-stack-chip-row" role="group" aria-label="Map presentation" data-i18n-aria-label>
+          <button type="button" class="map-stack-chip" data-map-presentation="geographic" aria-pressed="true" data-i18n>Geographic</button>
+          <button type="button" class="map-stack-chip" data-map-presentation="atc" aria-pressed="false" data-i18n>ATC</button>
+        </div>
+        <div id="atc-map-settings" hidden>
+          <label><span data-i18n>Line color</span><input type="color" data-atc-setting="color" value="#55ff99" /></label>
+          <div class="atc-color-shortcuts" role="group" aria-label="Line color shortcuts" data-i18n-aria-label>
+            <button type="button" class="map-stack-chip" data-atc-color="#55ff99" data-i18n>Green</button>
+            <button type="button" class="map-stack-chip" data-atc-color="#55ddff" data-i18n>Cyan</button>
+            <button type="button" class="map-stack-chip" data-atc-color="#ffbb55" data-i18n>Amber</button>
+            <button type="button" class="map-stack-chip" data-atc-color="#ffffff" data-i18n>White</button>
+          </div>
+          <label><span data-i18n>Line brightness</span><input type="range" min="0.1" max="1" step="0.05" data-atc-setting="brightness" value="0.7" /></label>
+          <label><span data-i18n>Line width</span><input type="range" min="1" max="4" step="0.5" data-atc-setting="width" value="1.5" /></label>
+          <label><span data-i18n>Coastlines</span><input type="checkbox" data-atc-setting="coastlines" checked /></label>
+          <label><span data-i18n>Country borders</span><input type="checkbox" data-atc-setting="borders" checked /></label>
+        </div>
+      </section>
       <section class="map-source-section" aria-labelledby="map-source-label">
         <div class="map-source-heading">
           <span data-i18n id="map-source-label">MAP SOURCE</span>

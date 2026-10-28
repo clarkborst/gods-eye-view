@@ -250,7 +250,7 @@ export const ACTION_DESCRIPTIONS = {
   },
   set_map_stack: {
     description:
-      'Switch the basemap/imagery stack (NOT the satellites data layer and NOT a visual style filter).',
+      'Switch basemap (including self-hosted ATC), not a data layer or visual filter.',
     $position: 1,
     parameters: {
       properties: {

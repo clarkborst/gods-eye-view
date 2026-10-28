@@ -1,3 +1,8 @@
+import {
+  readAtcSettings,
+  normalizeAtcSettings,
+  saveAtcSettings,
+} from './atc.js';
 import { indexMapSources } from './registry.js';
 import * as Cesium from 'cesium';
 import { createMapCredits } from './credits.js';
@@ -49,6 +54,9 @@ export class MapSourceController {
     this._imageryProviders = new Map();
     this._terrainProviders = new Map();
     this._tilesets = new Map();
+    this._presentations = new Map();
+    this._activePresentation = null;
+    this._atcSettings = readAtcSettings();
     this._ownedTilesets = new Set();
     this._disposed = new WeakSet();
     this._switchGen = 0;
@@ -129,6 +137,7 @@ export class MapSourceController {
   getState(status = this._isSwitching ? 'switching' : 'ready') {
     return {
       activeId: this._activeId,
+      atcSettings: { ...this._atcSettings },
       activeStack: this.getActiveStack(),
       stacks: this.getStacks(),
       status,
@@ -216,7 +225,9 @@ export class MapSourceController {
       const message = error?.message || String(error);
       this._lastError = message;
       this._onError?.(message, stack);
-      const recovery = this.getStack(this._registry.recoveryId);
+      const recovery = this._sources.get(stack.id)?.createPresentation
+        ? null
+        : this.getStack(this._registry.recoveryId);
       if (
         recovery &&
         recovery.id !== stack.id &&
@@ -248,9 +259,54 @@ export class MapSourceController {
 
   _activate(stack, gen) {
     const source = this._sources.get(stack.id);
+    if (source.createPresentation)
+      return this._activatePresentation(source, gen);
     return source.imagery
       ? this._activateGlobeStack(stack, gen)
       : this._activateTileset(source, gen);
+  }
+
+  setAtcSettings(patch) {
+    this._atcSettings = normalizeAtcSettings({
+      ...this._atcSettings,
+      ...patch,
+    });
+    saveAtcSettings(this._atcSettings);
+    if (this._activeId === 'atc')
+      this._activePresentation?.setSettings(this._atcSettings);
+    this._requestRender('atc-settings');
+    this._emitChange('ready');
+    return this.getState();
+  }
+
+  _leavePresentation() {
+    if (!this._activePresentation) return;
+    this._activePresentation.exit();
+    this._activePresentation = null;
+    // The next geographic source reinstalls its own terrain policy.
+    this._terrainMode = null;
+  }
+
+  async _activatePresentation(source, gen) {
+    const presentation = await this._cached(
+      this._presentations,
+      source.descriptor.id,
+      () =>
+        source.createPresentation(this.viewer, { signal: this._abort.signal }),
+    );
+    if (this._destroyed) {
+      presentation.destroy();
+      return;
+    }
+    if (gen !== this._switchGen) return;
+    if (this._activePresentation !== presentation) this._leavePresentation();
+    this._removeImageryLayer();
+    this._showTileset(null);
+    // A late retry for geographic terrain must not replace the flat ATC surface.
+    this._terrainFallback = null;
+    presentation.enter(this._atcSettings);
+    this._activePresentation = presentation;
+    this._credits.show(source.credit || null);
   }
 
   async _activateTileset(source, gen) {
@@ -268,6 +324,7 @@ export class MapSourceController {
       this.viewer.scene.primitives.add(tileset);
       this._ownedTilesets.add(tileset);
     }
+    this._leavePresentation();
     this._removeImageryLayer();
     this._credits.show(source.credit || null);
     this._showTileset(tileset);
@@ -285,6 +342,7 @@ export class MapSourceController {
   async _activateGlobeStack(stack, gen) {
     const resolution = await this._getImageryProvider(stack);
     if (gen !== this._switchGen) return;
+    this._leavePresentation();
     // Scene shots reapply their map stack at every handoff. Keep the live
     // layer (and its loaded tiles) when the resolved provider is unchanged;
     // rebuilding it exposes the bare globe while imagery loads again.
@@ -585,8 +643,15 @@ export class MapSourceController {
     this._dispose(this._replacedTerrain?.provider);
     this._replacedTerrain = null;
     this._isSwitching = false;
+    this._leavePresentation();
     this._removeImageryLayer();
     this._credits.destroy();
+    for (const promise of this._presentations.values())
+      void Promise.resolve(promise).then(
+        (value) => value.destroy(),
+        () => {},
+      );
+    this._presentations.clear();
     for (const promise of this._imageryProviders.values())
       void Promise.resolve(promise).then(
         (value) => this._dispose(value.provider),

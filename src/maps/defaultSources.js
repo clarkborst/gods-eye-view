@@ -1,3 +1,4 @@
+import { createAtcPresentation } from './atc.js';
 import { MAP_STACKS } from './catalog.js';
 import { photorealUnavailableReason } from './availability.js';
 import { keySetupRequirementEnvVars } from '../keySetupCore.mjs';
@@ -40,6 +41,12 @@ export function createDefaultMapSources({
             })
           : null,
       };
+      if (descriptor.kind === 'presentation')
+        return {
+          ...common,
+          createPresentation: createAtcPresentation,
+          credit: 'Made with Natural Earth · public domain',
+        };
       if (descriptor.kind === 'photoreal')
         return {
           ...common,

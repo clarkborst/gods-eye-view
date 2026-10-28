@@ -1042,6 +1042,14 @@ test('the voice TOOL SCHEMA matches the pinned contract — the mission mapping 
     'rotate_globe',
     'stop',
   ]);
+  // ATC deliberately adds one map source; mission definitions still add no tools.
+  const mapTool = legacyTools.find((tool) => tool.name === 'set_map_stack');
+  assert.match(mapTool.description, /ATC/);
+  mapTool.description =
+    'Switch the basemap/imagery stack (NOT the satellites data layer and NOT a visual style filter).';
+  const mapStack = mapTool.parameters.properties.stack;
+  assert.ok(mapStack.enum.includes('atc'));
+  mapStack.enum = mapStack.enum.filter((id) => id !== 'atc');
   const block = JSON.stringify(legacyTools);
   // Re-derived for the voice layer manifest (generated layer enums, alias and
   // field hints), point-and-ask's pointer/referent arguments and the prompt

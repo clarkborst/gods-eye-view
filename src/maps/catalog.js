@@ -1,6 +1,13 @@
 import * as Cesium from 'cesium';
 export const MAP_STACKS = [
   {
+    id: 'atc',
+    label: 'ATC', // i18n-ignore: standard map presentation acronym
+    shortLabel: 'ATC',
+    kind: 'presentation',
+    requiresIon: false,
+  },
+  {
     id: 'photoreal',
     label: 'Google 3D', // i18n-ignore: imagery product name
     shortLabel: '3D',

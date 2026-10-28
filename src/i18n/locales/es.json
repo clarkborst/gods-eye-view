@@ -2994,5 +2994,17 @@
   "Vehicle model size": "Tamaño de modelos de vehículos",
   "Rotterdam Simulation": "Simulación de Róterdam",
   "Replay aircraft and drone traffic around Rotterdam Airport": "Reproduce el tráfico de aviones y drones alrededor del aeropuerto de Róterdam",
-  "Opening Rotterdam simulation…": "Abriendo la simulación de Róterdam…"
+  "Opening Rotterdam simulation…": "Abriendo la simulación de Róterdam…",
+  "MAP PRESENTATION": "PRESENTACIÓN DEL MAPA",
+  "Map presentation": "Presentación del mapa",
+  "Geographic": "Geográfico",
+  "ATC": "ATC",
+  "Line color": "Color de línea",
+  "Line color shortcuts": "Colores de línea rápidos",
+  "White": "Blanco",
+  "Line brightness": "Brillo de línea",
+  "Line width": "Ancho de línea",
+  "Coastlines": "Costas",
+  "Country borders": "Fronteras de países",
+  "VISUAL EFFECT": "EFECTO VISUAL"
 }

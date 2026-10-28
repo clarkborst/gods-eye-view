@@ -54,6 +54,7 @@
     "check:boundaries": "node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs",
     "qa:transit": "node scripts/qa-transit.mjs",
     "qa:simulation": "node scripts/qa-simulation.mjs",
+    "qa:atc-map": "node scripts/qa-atc-map.mjs",
     "mcp": "node server/mcp/stdio.js"
   },
   "dependencies": {
