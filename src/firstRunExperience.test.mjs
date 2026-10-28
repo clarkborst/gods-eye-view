@@ -582,7 +582,7 @@ function missionSpy({
   };
 }
 
-test('the menu is the four owner-ordered missions', () => {
+test('the menu includes Rotterdam Simulation before manual exploration', () => {
   // INFRASTRUCTURE was removed after the owner playtested it: enabling all
   // three bundled layers at once put ~5,700 entities on a full-earth view and
   // tanked the frame rate. The layers stay reachable by hand and by voice; what
@@ -592,6 +592,7 @@ test('the menu is the four owner-ordered missions', () => {
     'contacts',
     'space-missions',
     'environmental',
+    'rotterdam-simulation',
     'explore',
   ]);
   assert.equal(
@@ -809,7 +810,7 @@ test('markup, startup ordering and accessibility remain pinned', () => {
     html,
     /id="first-run-launcher" role="dialog"[^>]*aria-labelledby="first-run-title"[^>]*hidden/,
   );
-  assert.equal((html.match(/data-first-run-choice=/g) || []).length, 4);
+  assert.equal((html.match(/data-first-run-choice=/g) || []).length, 5);
   assert.match(
     html,
     /data-first-run-status[^>]*role="status"[^>]*aria-live="polite"/,
@@ -852,6 +853,7 @@ test('markup, startup ordering and accessibility remain pinned', () => {
     'contacts',
     'space-missions',
     'environmental',
+    'rotterdam-simulation',
     'explore',
   ]);
   assert.doesNotMatch(
@@ -1095,13 +1097,14 @@ test('the voice TOOL SCHEMA matches the pinned contract — the mission mapping 
   assert.ok(paragraph.includes('set_layer_visibility'));
 });
 
-test('every layer a mission drives is already in the shipped set_layer_visibility enum', () => {
+test('live globe mission layers are in the shipped set_layer_visibility enum', () => {
   const tool = GEV_REALTIME_TOOLS.find(
     (tool) => tool.name === 'set_layer_visibility',
   );
   const allowedLayers = tool.parameters.properties.layerId.enum;
   const missionLayerIds = Object.values(FIRST_RUN_MISSIONS).flatMap(
-    (mission) => mission.layerIds || [],
+    // Replay is enabled directly through DataManager, not the live voice tool.
+    (mission) => (mission.kind === 'globe' ? mission.layerIds : []),
   );
   assert.ok(missionLayerIds.length > 0);
   for (const layerId of missionLayerIds) {
@@ -1110,4 +1113,17 @@ test('every layer a mission drives is already in the shipped set_layer_visibilit
       `${layerId} must already be an allowed enum value`,
     );
   }
+});
+
+test('Rotterdam Simulation enables replay without competing camera or Context changes', async () => {
+  const spy = missionSpy();
+  const result = await runFirstRunChoice('rotterdam-simulation', spy.deps);
+  assert.equal(result.ok, true);
+  assert.deepEqual(spy.calls.layerIds, ['simulated-traffic']);
+  assert.deepEqual(spy.calls.contextModes, []);
+  assert.equal(spy.calls.globeFlights, 0);
+  const refused = missionSpy({ layerResult: () => false });
+  const failure = await runFirstRunChoice('rotterdam-simulation', refused.deps);
+  assert.equal(failure.ok, false);
+  assert.deepEqual(failure.failedLayerIds, ['simulated-traffic']);
 });

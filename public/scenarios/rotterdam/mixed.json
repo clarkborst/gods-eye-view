@@ -1,0 +1,19 @@
+{
+  "$schema": "../scenario.schema.json",
+  "version": 1,
+  "id": "rotterdam-mixed",
+  "name": "Rotterdam · mixed operations",
+  "description": "Synthetic traffic around Rotterdam The Hague Airport.",
+  "view": {
+    "longitude": 4.437,
+    "latitude": 51.956,
+    "height": 14000,
+    "heading": 0,
+    "pitch": -90
+  },
+  "files": [
+    "aircraft.czml",
+    "drones.czml",
+    "ground.czml"
+  ]
+}

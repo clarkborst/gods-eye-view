@@ -89,6 +89,10 @@ export function updateContext(info, heading) {
   const nearest = [];
   for (const cohort of snapshot.cohorts) {
     const element = this.contextCohorts.get(cohort.id);
+    if (element)
+      element.hidden = Boolean(info.simulated && cohort.id !== 'flights');
+    const source = element?.querySelector('small');
+    if (source && cohort.source) source.textContent = cohort.source;
     const value = element?.querySelector('strong');
     if (value)
       value.textContent = cohort.count === null ? '?' : String(cohort.count);

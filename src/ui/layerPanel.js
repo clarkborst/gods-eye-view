@@ -11,6 +11,7 @@ import {
 } from './layerNames.js';
 export { localizeLayerName } from './layerNames.js';
 import { createWeatherPanel } from './weatherPanel.js';
+import { createSimulationPanel } from './simulationPanel.js';
 import { translateFeedError, translateStatusLine } from './statusText.js';
 import {
   formatNumber,
@@ -45,6 +46,7 @@ const PANEL_GROUPS = [
       'flights',
       'military',
       'local-adsb',
+      'simulated-traffic',
       'ais-live-vessels',
       'traffic',
       'transit',
@@ -422,6 +424,14 @@ export class LayerPanel {
       }
 
       this._toggleContainer.appendChild(row);
+      const simulation = this._rowControlsFor(layer.id)?.simulation;
+      if (simulation) {
+        const panel = createSimulationPanel({
+          container: row,
+          controller: simulation,
+        });
+        this._removers.push(() => panel.destroy());
+      }
     }
     this._refreshWeatherPanel();
   }

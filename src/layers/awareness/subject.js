@@ -92,7 +92,9 @@ export function createSubject({ state: layerState, services, parts, source }) {
       cohorts: [
         {
           id: 'flights',
-          label: t('Flights'),
+          label: services.simulation?.simulation.getState().enabled
+            ? t('Simulated Traffic')
+            : t('Flights'),
           source: flightsState.stats.source || SOURCE_LABEL.flights,
           provenance: retainedProvenance(
             'flights',

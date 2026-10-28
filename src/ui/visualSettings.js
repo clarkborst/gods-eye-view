@@ -286,7 +286,9 @@ export class VisualSettings {
   _syncContactsDetection() {
     if (this._contextModeChanging) return;
     const result = applyContactsDetection({
-      active: this._contextMode === 'flights',
+      active:
+        this._contextMode === 'flights' ||
+        Boolean(this._dataManager?.isEnabled?.('simulated-traffic')),
       restore: this._contactsDetectionRestore,
       // A map style picked DURING the session owns detection on the way out —
       // its auto-enable preset is younger than the entry snapshot.

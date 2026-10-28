@@ -120,6 +120,7 @@ export function pushCockpitSignal(key, tone, title, detail, target = null) {
 }
 
 export function updateCockpitSignals(snapshot, unknownCount) {
+  const simulated = this.lastAircraftInfo?.simulated === true;
   const previous = new Map(this.signalItems.map((item) => [item.key, item]));
   const contacts = [];
   const subject = snapshot.subject;
@@ -129,8 +130,9 @@ export function updateCockpitSignals(snapshot, unknownCount) {
       tone: 'track',
       title: subject.label || subject.id,
       detail: t('{aircraftClass} · CURRENT', {
-        aircraftClass:
-          subject.layerId === 'military'
+        aircraftClass: simulated
+          ? t('Simulated Traffic')
+          : subject.layerId === 'military'
             ? t('MILITARY FLIGHT')
             : t('COMMERCIAL FLIGHT'),
       }),
@@ -153,8 +155,9 @@ export function updateCockpitSignals(snapshot, unknownCount) {
         // Context panel's nearest list uses.
         title: this.services.formatAwarenessLabel(item),
         detail: t('{aircraftClass} · {distance}', {
-          aircraftClass:
-            cohort.id === 'military'
+          aircraftClass: simulated
+            ? t('Simulated Traffic')
+            : cohort.id === 'military'
               ? t('MILITARY FLIGHT')
               : t('COMMERCIAL FLIGHT'),
           distance: Number.isFinite(item.distanceM)

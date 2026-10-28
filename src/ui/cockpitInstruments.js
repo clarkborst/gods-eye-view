@@ -43,6 +43,81 @@ const LOCALIZED_EMERGENCY = Object.freeze({
       : t('ADS-B EMERGENCY · {status}', { status: emergencyLabel(parts) }),
 });
 
+const tapeKeys = new WeakMap();
+
+/** Keep a DOM node attached to a physical tick, rather than its row index.
+ * Retained ticks keep their CSS transitions across interval boundaries. Only
+ * entering ticks get fresh nodes, so recycling never animates across the tape.
+ * Signed keys keep the clamped zero labels near the surface distinct.
+ */
+export function updateCockpitTape(elements, ticks, formatValue) {
+  if (!elements.length) return;
+  if (!ticks.length) {
+    for (const element of elements) element.hidden = true;
+    return;
+  }
+  const keyOf = (tick) => `${tick.stepFt ?? tick.stepKt}:${tick.key}`;
+  const wanted = new Set(ticks.map(keyOf));
+  const existing = new Map(
+    elements.map((element) => [tapeKeys.get(element), element]),
+  );
+  const spare = elements.filter(
+    (element) => !wanted.has(tapeKeys.get(element)),
+  );
+  const next = ticks.map((tick) => {
+    const key = keyOf(tick);
+    let element = existing.get(key);
+    if (!element) {
+      element = spare.shift();
+      // A fresh element has no prior computed position to transition from.
+      // Avoid forced layout reads, frame callbacks and cross-tape animations.
+      if (tapeKeys.has(element)) {
+        const replacement = element.cloneNode(true);
+        element.replaceWith(replacement);
+        element = replacement;
+      }
+    }
+    element.hidden = false;
+    tapeKeys.set(element, key);
+    element.style.setProperty('--slot', tick.slot.toFixed(4));
+    element.style.setProperty('--depth', tick.depth.toFixed(4));
+    element.style.setProperty(
+      '--curve',
+      altitudeRulerCurveInset(tick.slot).toFixed(5),
+    );
+    element.classList.toggle('major', tick.major);
+    const label = element.querySelector('b');
+    if (label) label.textContent = formatValue(tick.valueFt ?? tick.valueKt);
+    return element;
+  });
+  elements.splice(0, elements.length, ...next);
+}
+
+/** Retain physical compass divisions and position them by fractional bearing.
+ * Circular differences keep north crossings continuous in either direction.
+ * Only newly entering edge ticks are created, without a stale CSS position.
+ */
+export function updateCockpitCompass(tape, heading) {
+  const existing = new Map(
+    Array.from(tape.children, (node) => [Number(node.dataset.bearing), node]),
+  );
+  for (const division of compassDivisions(heading)) {
+    let node = existing.get(division);
+    if (node) existing.delete(division);
+    else {
+      node = tape.ownerDocument.createElement('span');
+      node.dataset.bearing = String(division);
+      node.textContent = compassPointLabel(formatCompassDivision(division));
+      tape.appendChild(node);
+    }
+    const slot = relativeBearing(division, heading) / 30;
+    node.style.setProperty('--slot', slot.toFixed(4));
+    node.style.setProperty('--depth', Math.abs(slot).toFixed(4));
+    node.classList.toggle('active', Math.abs(slot) < 0.5);
+  }
+  for (const node of existing.values()) node.remove();
+}
+
 export function updateHud(
   info,
   nowMs = performance.now(),
@@ -65,20 +140,7 @@ export function updateHud(
   if (this.speedRimValue)
     this.speedRimValue.textContent = formatSpeedRulerTick(speedKt);
   const speedTicks = speedRulerTicks(speedKt, this.speedRimTicks.length);
-  this.speedRimTicks.forEach((element, index) => {
-    const tick = speedTicks[index];
-    element.hidden = !tick;
-    if (!tick) return;
-    element.style.setProperty('--slot', tick.slot.toFixed(4));
-    element.style.setProperty('--depth', tick.depth.toFixed(4));
-    element.style.setProperty(
-      '--curve',
-      altitudeRulerCurveInset(tick.slot).toFixed(5),
-    );
-    element.classList.toggle('major', tick.major);
-    const label = element.querySelector('b');
-    if (label) label.textContent = formatSpeedRulerTick(tick.valueKt);
-  });
+  updateCockpitTape(this.speedRimTicks, speedTicks, formatSpeedRulerTick);
   const altitudeFt = cockpitAltitudeDisplayFt(info.altitudeM, info.onGround);
   if (this.altitude) {
     const displayedAltitudeFt = Number.isFinite(altitudeFt)
@@ -102,41 +164,21 @@ export function updateHud(
     altitudeFt,
     this.altitudeRimTicks.length,
   );
-  this.altitudeRimTicks.forEach((element, index) => {
-    const tick = altitudeTicks[index];
-    element.hidden = !tick;
-    if (!tick) return;
-    element.style.setProperty('--slot', tick.slot.toFixed(4));
-    element.style.setProperty('--depth', tick.depth.toFixed(4));
-    element.style.setProperty(
-      '--curve',
-      altitudeRulerCurveInset(tick.slot).toFixed(5),
-    );
-    element.classList.toggle('major', tick.major);
-    const label = element.querySelector('b');
-    if (label) label.textContent = formatAltitudeRulerTick(tick.valueFt);
-  });
+  updateCockpitTape(
+    this.altitudeRimTicks,
+    altitudeTicks,
+    formatAltitudeRulerTick,
+  );
   setCockpitRollingValue(
     this.headingValue,
     String(Math.round(heading) % 360).padStart(3, '0'),
     heading,
     { circularRange: 360, immediate: forceContext },
   );
-  if (this.compassTape) {
-    const divisions = compassDivisions(heading);
-    const signature = divisions.join(',');
-    if (signature !== this.lastCompassSignature) {
-      this.lastCompassSignature = signature;
-      this.compassTape.innerHTML = divisions
-        .map((division, index) => {
-          const slot = index - 3;
-          return `<span class="${slot === 0 ? 'active' : ''}" style="--slot:${slot};--depth:${Math.abs(slot)}">${compassPointLabel(formatCompassDivision(division))}</span>`;
-        })
-        .join('');
-    }
-  }
+  if (this.compassTape) updateCockpitCompass(this.compassTape, heading);
   if (this.clock)
-    this.clock.textContent = new Date().toISOString().slice(11, 19) + 'Z';
+    this.clock.textContent =
+      (info.simulationTime || new Date().toISOString()).slice(11, 19) + 'Z';
   if (this.position) {
     const lat = Number.isFinite(info.latitude)
       ? formatCockpitCoordinate(info.latitude, 'N', 'S')
@@ -153,9 +195,17 @@ export function updateHud(
         ? t('SURFACE FALLBACK')
         : info.stale
           ? t('STALE FEED')
-          : t('LIVE TRACK');
-    const aircraftClass =
-      info.layerId === 'military' ? t('MILITARY') : t('COMMERCIAL');
+          : info.simulated
+            ? t('Simulated Traffic').toUpperCase()
+            : t('LIVE TRACK');
+    const aircraftClass = info.simulated
+      ? (info.category === 'drone'
+          ? t('Aerial drones')
+          : t('Aircraft')
+        ).toUpperCase()
+      : info.layerId === 'military'
+        ? t('MILITARY')
+        : t('COMMERCIAL');
     const emergency = formatCockpitEmergency(
       info.emergency,
       LOCALIZED_EMERGENCY,

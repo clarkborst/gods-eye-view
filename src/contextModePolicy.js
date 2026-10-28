@@ -1,3 +1,4 @@
+import { SIMULATION_LAYER_ID } from './simulationModePolicy.js';
 import { msg } from './i18n/marker.js';
 
 const CONTEXT_DEPENDENCIES = Object.freeze({
@@ -27,6 +28,7 @@ export function recordContextRestoreExplicitChange({ restoreState, change }) {
   if (
     !restoreState?.enabledLayerIds ||
     change?.type !== 'visibility' ||
+    change.layerId === SIMULATION_LAYER_ID ||
     !isExplicitUserIntentOrigin(change.origin, change.layerId)
   )
     return false;
@@ -191,6 +193,7 @@ export function shouldExitContextForLayerChange({
 }) {
   if (
     change?.type !== 'visibility' ||
+    change.layerId === SIMULATION_LAYER_ID ||
     !isExplicitUserIntentOrigin(change.origin, change.layerId) ||
     change.layerId === 'military-awareness' ||
     CONTEXT_COMPANIONS.has(change.layerId)
@@ -273,6 +276,7 @@ export function recordContextSessionUserChange({
   if (
     !snapshot?.userAdded ||
     change?.type !== 'visibility' ||
+    change.layerId === SIMULATION_LAYER_ID ||
     !isExplicitUserIntentOrigin(change.origin, change.layerId)
   ) {
     return false;
@@ -318,6 +322,7 @@ export function contextSnapshotLayerIds(
   excludeLayerIds = [],
 ) {
   const snapshot = new Set(restoringLayerIds || currentEnabledLayerIds || []);
+  snapshot.delete(SIMULATION_LAYER_ID);
   for (const layerId of excludeLayerIds || []) snapshot.delete(layerId);
   return snapshot;
 }
@@ -338,6 +343,7 @@ export function contextLayerEnableBlockReason({
 }) {
   if (
     contextMode !== 'space-missions' ||
+    change?.layerId === SIMULATION_LAYER_ID ||
     change?.enabled !== true ||
     contextAllowedLayerIds('space-missions').has(change.layerId)
   ) {
@@ -407,6 +413,7 @@ export function contextRestoreLayerIds(snapshot = {}) {
     ...(snapshot.enabledLayerIds || []),
     ...(snapshot.userAdded || []),
   ]);
+  restored.delete(SIMULATION_LAYER_ID);
   for (const layerId of snapshot.userRemoved || []) restored.delete(layerId);
   return restored;
 }
@@ -429,12 +436,13 @@ export function cockpitEntryAllowed({
   contextModeChanging,
   flightsEnabled,
   militaryEnabled,
+  simulationEnabled = false,
 }) {
   return (
     contextMode === 'flights' &&
     !contextModeChanging &&
-    Boolean(flightsEnabled) &&
-    Boolean(militaryEnabled)
+    (Boolean(simulationEnabled) ||
+      (Boolean(flightsEnabled) && Boolean(militaryEnabled)))
   );
 }
 

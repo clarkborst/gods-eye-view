@@ -41,6 +41,12 @@ test('catalogs construct distinct layers and classification from their supplied 
     surface: fixtureSurface(b.signal),
   });
   assert.equal(first.layers.length, 33);
+  assert.ok(first.get('simulated-traffic'));
+  assert.deepEqual(
+    first.metadata.find(({ id }) => id === 'simulated-traffic'),
+    { id: 'simulated-traffic', disposition: 'local-only' },
+    'simulation must not unexpectedly restore a historical viewer clock',
+  );
   assert.ok(first.get('local-adsb'), 'Local ADS-B is registered');
   assert.deepEqual(
     first.metadata.find(({ id }) => id === 'local-adsb'),
@@ -61,7 +67,6 @@ test('catalogs construct distinct layers and classification from their supplied 
     );
   assert.ok(first.get('fire-perimeters'));
   assert.ok(first.get('gnss-integrity'));
-  assert.ok(first.get('s2-ghostmaps'));
   assert.ok(first.get('transit'));
   const order = first.layers.map(({ id }) => id);
   assert.deepEqual(

@@ -12,6 +12,9 @@ import {
   formatCockpitWindDirection,
 } from './cockpitPresentation.js';
 
+// Standard file-format identifier, like the provider/source names below.
+const CZML_FORMAT_NAME = 'CZML';
+
 // regionalModel.weatherCodeLabel is shared with node code and returns
 // English; translate it here.
 const WEATHER_CONDITION_KEYS = Object.freeze({
@@ -34,6 +37,8 @@ export function showBriefPage(index, { manual = false } = {}) {
   const count = COCKPIT_BRIEF_PAGES.length;
   this.briefPageIndex = ((Number(index) % count) + count) % count;
   const page = COCKPIT_BRIEF_PAGES[this.briefPageIndex];
+  const simulationSignals =
+    page.id === 'signals' && this.readAircraftInfo?.()?.simulated;
   this.briefPages.forEach((element) => {
     element.hidden = element.dataset.cockpitBriefPage !== page.id;
   });
@@ -45,12 +50,18 @@ export function showBriefPage(index, { manual = false } = {}) {
   if (this.briefKicker) {
     const indicator = this.briefKicker.querySelector('i');
     this.briefKicker.replaceChildren(
-      ...[indicator, document.createTextNode(` ${t(page.kickerKey)}`)].filter(
-        Boolean,
-      ),
+      ...[
+        indicator,
+        document.createTextNode(
+          ` ${simulationSignals ? t('Simulated Traffic').toUpperCase() : t(page.kickerKey)}`,
+        ),
+      ].filter(Boolean),
     );
   }
-  if (this.briefSubtitle) this.briefSubtitle.textContent = t(page.subtitleKey);
+  if (this.briefSubtitle)
+    this.briefSubtitle.textContent = simulationSignals
+      ? CZML_FORMAT_NAME
+      : t(page.subtitleKey);
   if (this.briefPosition)
     this.briefPosition.textContent = `${this.briefPageIndex + 1} / ${count}`;
   if (this.briefSource)

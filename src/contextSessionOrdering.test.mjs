@@ -91,7 +91,7 @@ test('context restore settles the Contacts coordinator before dependency fanout'
   assert.ok(settle > 0, 'Contacts coordinator settlement is present');
   assert.ok(coordinatorOff > settle, 'Contacts OFF is awaited');
   assert.ok(fanout > coordinatorOff, 'snapshot fanout starts after Contacts settles');
-  assert.match(restore, /excludeLayerIds: settleContactsCoordinator[\s\S]*?contactsCoordinatorId/);
+  assert.match(restore, /excludeLayerIds: \[[\s\S]*?protectedLayerIds[\s\S]*?settleContactsCoordinator \? \[contactsCoordinatorId\]/);
 });
 
 test('Clear All during the Contacts settle stops the snapshot coming back', () => {

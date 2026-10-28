@@ -169,6 +169,7 @@ export function createApplicationTools({
     tileset,
     dataManager,
     sceneDirector,
+    altitudeLines: data.altitudeLines,
     mapStackController,
     annotations,
     weatherEffects,

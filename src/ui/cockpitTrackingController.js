@@ -36,6 +36,7 @@ export function dispatchCockpitModeChanged(active, info = null) {
 export function toggleTrackedTr3b() {
   if (this.destroyed) return false;
   const info = this.readAircraftInfo();
+  if (info?.simulated) return false;
   const icao24 = String(info?.icao24 || '').trim();
   if (!icao24) return false;
   this.services.toggleTr3b(icao24);
@@ -51,7 +52,7 @@ export function toggleTrackedTr3b() {
 
 export function syncTr3bToggle(info) {
   if (!this.tr3bToggle) return;
-  const icao24 = String(info?.icao24 || '').trim();
+  const icao24 = info?.simulated ? '' : String(info?.icao24 || '').trim();
   const converted = !!icao24 && this.services.isTr3b(icao24);
   const signature = icao24 ? `${icao24}:${converted ? 1 : 0}` : '';
   if (this._tr3bSignature === signature) return;

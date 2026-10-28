@@ -1,4 +1,8 @@
 import {
+  SIMULATION_LAYER_ID,
+  LIVE_MOVEMENT_LAYERS,
+} from '../simulationModePolicy.js';
+import {
   contextAllowedLayerIds,
   mergeContextTransitionErrors,
 } from '../contextModePolicy.js';
@@ -214,6 +218,7 @@ export async function _selectContextMode(
 
 export async function _deactivateContextForLayerChange({
   notificationToken = null,
+  preserveMovementState = false,
 } = {}) {
   this._contextModeGeneration += 1;
   this._contextModeChanging = true;
@@ -224,7 +229,10 @@ export async function _deactivateContextForLayerChange({
     this.cockpitView.exit({ restoreTracking: false });
   this._syncContextModeButtons();
   try {
-    await this._restoreContextSession({ notificationToken });
+    await this._restoreContextSession({
+      notificationToken,
+      excludeLayerIds: preserveMovementState ? LIVE_MOVEMENT_LAYERS : [],
+    });
   } finally {
     this._contextModeChanging = false;
     this._syncContextModeButtons();
@@ -236,6 +244,8 @@ export async function _clearLayersOutsideContextMode(
   { notificationToken = null, signal = null } = {},
 ) {
   const allowed = contextAllowedLayerIds(mode);
+  // Context never owns the user's live/replay switch, including Space Missions.
+  allowed.add(SIMULATION_LAYER_ID);
   const pending = [];
   for (const [layerId] of this._dataManager.layers || []) {
     // Effective visibility: a disallowed layer still mid-ENABLING must be

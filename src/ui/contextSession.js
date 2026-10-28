@@ -1,3 +1,4 @@
+import { contextModeOwnedExclusions } from '../simulationModePolicy.js';
 import {
   contextRestoreLayerIds,
   contextSnapshotLayerIds,
@@ -54,6 +55,15 @@ export async function _restoreContextSession({
     enabledLayerIds: contextRestoreLayerIds(snapshot),
     explicitLayerStates: new Map(),
   };
+  const protectedLayerIds = new Set([
+    ...excludeLayerIds,
+    ...contextModeOwnedExclusions(this._dataManager),
+  ]);
+  for (const id of protectedLayerIds) {
+    if (this._dataManager.isEffectivelyEnabled(id))
+      restoreState.enabledLayerIds.add(id);
+    else restoreState.enabledLayerIds.delete(id);
+  }
   this._contextRestoreState = restoreState;
   for (const [layerId, params] of Object.entries(snapshot.params)) {
     this._dataManager.setLayerParams(layerId, params);
@@ -93,9 +103,13 @@ export async function _restoreContextSession({
       restoreState.enabledLayerIds,
       {
         origin: 'context-restore',
-        excludeLayerIds: settleContactsCoordinator
-          ? [...excludeLayerIds, contactsCoordinatorId]
-          : excludeLayerIds,
+        excludeLayerIds: [
+          ...new Set([
+            ...protectedLayerIds,
+            ...contextModeOwnedExclusions(this._dataManager),
+            ...(settleContactsCoordinator ? [contactsCoordinatorId] : []),
+          ]),
+        ],
         notificationToken,
         ...(restoreSignal ? { signal: restoreSignal } : {}),
       },
