@@ -188,7 +188,7 @@ export function createSimulationPanel({ container, controller }) {
   const trackLabel = make('label', root, t('Follow vehicle'));
   const track = make('select', trackLabel);
   track.setAttribute('aria-label', t('Follow simulated vehicle'));
-  const overview = make('button', root, t('View Rotterdam Airport'));
+  const overview = make('button', root, t('View scenario overview'));
   overview.type = 'button';
   overview.className = 'data-toggle-chip';
   bind(overview, 'click', () => controller.overview());
