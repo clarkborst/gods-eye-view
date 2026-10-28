@@ -1,0 +1,11 @@
+{
+  "$schema": "catalog.schema.json",
+  "version": 1,
+  "defaultScenario": "rotterdam-mixed",
+  "scenarios": [
+    "rotterdam/mixed.json",
+    "rotterdam/aircraft.json",
+    "rotterdam/drones.json",
+    "rotterdam/ground.json"
+  ]
+}

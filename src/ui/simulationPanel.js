@@ -224,11 +224,13 @@ export function createSimulationPanel({ container, controller }) {
       dragging = false;
       resume = false;
     }
-    const nextScenarios = state.scenarios.map((s) => s.id).join(',');
+    const nextScenarios = JSON.stringify(
+      state.scenarios.map((s) => [s.id, s.name]),
+    );
     if (scenarioKey !== nextScenarios) {
       scenario.replaceChildren();
       for (const s of state.scenarios) {
-        const option = make('option', scenario, t(s.name));
+        const option = make('option', scenario, s.name);
         option.value = s.id;
       }
       scenarioKey = nextScenarios;
@@ -262,10 +264,9 @@ export function createSimulationPanel({ container, controller }) {
     readout.title = state.current || '';
     slider.title =
       state.start && state.stop ? `${state.start} → ${state.stop}` : '';
-    scenarioName.textContent = t(
+    scenarioName.textContent =
       state.scenarios.find((item) => item.id === state.scenario)?.name ||
-        'Simulation playback',
-    );
+      t('Simulation playback');
     const start = state.start ? Date.parse(state.start) : 0;
     for (let i = 0; i < ticks.length; i++) {
       ticks[i].textContent = state.start

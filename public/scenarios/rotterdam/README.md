@@ -41,15 +41,14 @@ switch in the clock/controller. Supply CZML point/billboard/model/path styling.
 For models the layer derives orientation from velocity unless explicit orientation
 is present; hovering vehicles with authored attitude should provide orientation.
 
-Add scenario descriptors in `src/layers/simulatedTraffic/scenarios.js`, including
-`view: { longitude, latitude, height }` (degrees and ellipsoid metres) for automatic
-camera framing. Files in a
-combined scenario share one clock (the union of their document intervals). Keep
-IDs globally unique and use compatible epochs/availability. Scenario URLs are
-bundled same-origin assets; arbitrary remote/local-file imports are not supported.
-Simulation mode is session-local and is intentionally excluded from share links
-and automatic stored-layer restoration. Weather and Director playback are not
-synchronized to the scenario clock.
+Scenario descriptors are JSON files alongside these CZML files (`mixed.json`,
+`aircraft.json`, `drones.json`, `ground.json`), listed in `../catalog.json`.
+Edit their camera views and file lists without changing JavaScript. See
+[scenario authoring](../README.md) for adding locations and editor schemas.
+Files in a combined scenario share the union of their document clock intervals;
+keep IDs unique and epochs/availability compatible. Simulation mode remains
+session-local and excluded from share links and automatic stored-layer restore.
+Weather and Director playback are not synchronized to the scenario clock.
 
 ## Validation
 

@@ -1,0 +1,17 @@
+{
+  "$schema": "../scenario.schema.json",
+  "version": 1,
+  "id": "rotterdam-ground",
+  "name": "Rotterdam · ground robots",
+  "description": "Synthetic traffic around Rotterdam The Hague Airport.",
+  "view": {
+    "longitude": 4.437,
+    "latitude": 51.956,
+    "height": 14000,
+    "heading": 0,
+    "pitch": -90
+  },
+  "files": [
+    "ground.czml"
+  ]
+}

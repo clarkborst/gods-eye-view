@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { createSimulationPlayback } from './playback.js';
 import { createSimulationMode } from './mode.js';
-import { SIMULATION_SCENARIOS, entityCategory } from './scenarios.js';
+import { loadScenarioCatalog, entityCategory } from './scenarios.js';
 import { createSimulationContacts } from './contacts.js';
 
 const msg = (text) => text;
@@ -21,7 +21,8 @@ export function createSimulatedTrafficLayer({
   let generation = 0;
   let request = null;
   let sources = [];
-  let selectedScenario = SIMULATION_SCENARIOS[0].id;
+  let scenarios = [];
+  let selectedScenario = null;
   let loadedScenario = null;
   let trails = true;
   let categoryVisibility = new Map();
@@ -87,7 +88,7 @@ export function createSimulatedTrafficLayer({
         error,
         trails,
         scenario: selectedScenario,
-        scenarios: SIMULATION_SCENARIOS,
+        scenarios,
         categories: [...categories].map(([id, count]) => ({
           id,
           count,
@@ -105,7 +106,7 @@ export function createSimulatedTrafficLayer({
       return () => listeners.delete(listener);
     },
     async loadScenario(id, { signal } = {}) {
-      const scenario = SIMULATION_SCENARIOS.find((item) => item.id === id);
+      const scenario = scenarios.find((item) => item.id === id);
       if (!scenario) throw new Error('Unknown simulation scenario');
       selectedScenario = id;
       if (!enabled) {
@@ -120,15 +121,17 @@ export function createSimulatedTrafficLayer({
       if (signal?.aborted) current.abort();
       const epoch = ++generation;
       const staged = [];
+      let loadingFile = null;
       loading = true;
       error = null;
       playback.pause();
       notify();
       try {
         for (const file of scenario.files) {
-          const url = resolveAsset(`/scenarios/rotterdam/${file}`);
+          const url = file;
+          loadingFile = url;
           const response = await fetchImpl(url, { signal: current.signal });
-          if (!response.ok) throw new Error(`Scenario HTTP ${response.status}`);
+          if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
           const packets = await response.json();
           if (
             !Array.isArray(packets) ||
@@ -136,7 +139,7 @@ export function createSimulatedTrafficLayer({
             !packets[0]?.clock?.interval
           )
             throw new Error(
-              'CZML requires a document packet with a clock interval',
+              `${url}: CZML requires a document packet with a clock interval`,
             );
           const data = await Cesium.CzmlDataSource.load(packets, {
             sourceUri: url,
@@ -149,7 +152,9 @@ export function createSimulatedTrafficLayer({
               data.clock.stopTime,
             )
           )
-            throw new Error('CZML document requires a valid clock interval');
+            throw new Error(
+              `${url}: CZML document requires a valid clock interval`,
+            );
           current.signal.throwIfAborted();
           for (const entity of data.entities.values) {
             if (entity.position && !entity.orientation)
@@ -159,6 +164,7 @@ export function createSimulatedTrafficLayer({
             contacts.style(entity);
           }
         }
+        loadingFile = null;
         if (generation !== epoch || !enabled) return false;
         const ids = new Set();
         for (const data of staged)
@@ -202,8 +208,12 @@ export function createSimulatedTrafficLayer({
       } catch (failure) {
         if (generation === epoch && !current.signal.aborted) {
           selectedScenario = loadedScenario || id;
-          error = String(failure.message || failure);
-          throw failure;
+          const message = String(failure.message || failure);
+          error =
+            loadingFile && !message.startsWith(loadingFile)
+              ? `${loadingFile}: ${message}`
+              : message;
+          throw new Error(error, { cause: failure });
         }
         return false;
       } finally {
@@ -242,7 +252,7 @@ export function createSimulatedTrafficLayer({
       if (!enabled || !viewer) return;
       contacts.stopTracking();
       viewer.trackedEntity = undefined;
-      const view = SIMULATION_SCENARIOS.find(
+      const view = scenarios.find(
         (scenario) => scenario.id === loadedScenario,
       )?.view;
       if (!view) return;
@@ -253,6 +263,11 @@ export function createSimulatedTrafficLayer({
           view.latitude,
           view.height,
         ),
+        orientation: {
+          heading: Cesium.Math.toRadians(view.heading ?? 0),
+          pitch: Cesium.Math.toRadians(view.pitch ?? -90),
+          roll: 0,
+        },
         duration: 1.2,
       });
     },
@@ -278,7 +293,37 @@ export function createSimulatedTrafficLayer({
       await mode?.enter(signal);
       signal?.throwIfAborted();
       enabled = true;
-      await api.loadScenario(selectedScenario, { signal });
+      const catalogRequest = new AbortController();
+      request?.abort();
+      request = catalogRequest;
+      const abortCatalog = () => catalogRequest.abort();
+      signal?.addEventListener('abort', abortCatalog, { once: true });
+      if (signal?.aborted) catalogRequest.abort();
+      loading = true;
+      error = null;
+      notify();
+      try {
+        const catalog = await loadScenarioCatalog({
+          fetchImpl,
+          resolveAsset,
+          signal: catalogRequest.signal,
+        });
+        catalogRequest.signal.throwIfAborted();
+        scenarios = catalog.scenarios;
+        if (!scenarios.some((item) => item.id === selectedScenario))
+          selectedScenario = catalog.defaultScenario;
+        if (!(await api.loadScenario(selectedScenario, { signal })))
+          return false;
+      } catch (failure) {
+        if (!signal?.aborted && enabled)
+          error = String(failure.message || failure);
+        throw failure;
+      } finally {
+        signal?.removeEventListener('abort', abortCatalog);
+        if (request === catalogRequest) request = null;
+        loading = false;
+        notify();
+      }
       signal?.throwIfAborted();
       contacts.attach();
       picking?.registerPickOwner(layer.id, (id) =>

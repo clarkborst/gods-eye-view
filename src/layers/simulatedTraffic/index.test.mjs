@@ -24,7 +24,7 @@ const packets = async (file) =>
       'utf8',
     ),
   );
-function fixture(t, fetchImpl) {
+function fixture(t, fetchImpl, metadataFetch) {
   const holds = new Set();
   const owners = new Map();
   const viewer = {
@@ -74,12 +74,28 @@ function fixture(t, fetchImpl) {
       unregisterPickOwner: (id) => owners.delete(id),
     },
     resolveAsset: (url) => url,
-    fetchImpl:
-      fetchImpl ||
-      (async (url) => ({
-        ok: true,
-        json: () => packets(url.split('/').at(-1)),
-      })),
+    fetchImpl: async (url, options) => {
+      if (url.endsWith('.json')) {
+        if (metadataFetch) return metadataFetch(url, options);
+        const path = new URL(url).pathname;
+        return {
+          ok: true,
+          json: async () =>
+            JSON.parse(
+              await readFile(
+                new URL(`../../../public${path}`, import.meta.url),
+                'utf8',
+              ),
+            ),
+        };
+      }
+      return fetchImpl
+        ? fetchImpl(url, options)
+        : {
+            ok: true,
+            json: () => packets(url.split('/').at(-1)),
+          };
+    },
   });
   layer.init(viewer);
   t.after(() => layer.destroy());
@@ -381,4 +397,84 @@ test('scenario selection automatically frames its location and starts paused at 
   f.api.play();
   assert.equal(f.api.getState().playing, true);
   assert.equal(f.api.getState().rate, 1);
+});
+
+test('external catalog defines the scenario list, default, asset location and camera without Rotterdam assumptions', async (t) => {
+  const calls = [];
+  const f = fixture(
+    t,
+    async (url) => {
+      calls.push(url);
+      return { ok: true, json: () => packets('drones.czml') };
+    },
+    async (url) => ({
+      ok: true,
+      json: async () =>
+        url.endsWith('catalog.json')
+          ? {
+              version: 1,
+              defaultScenario: 'tokyo',
+              scenarios: ['tokyo/replay.json'],
+            }
+          : {
+              version: 1,
+              id: 'tokyo',
+              name: 'Tokyo custom replay',
+              view: {
+                longitude: 139.8,
+                latitude: 35.6,
+                height: 9000,
+                heading: 75,
+                pitch: -45,
+              },
+              files: ['vehicles.czml'],
+            },
+    }),
+  );
+  await f.layer.enable(f.viewer);
+  assert.equal(f.api.getState().scenario, 'tokyo');
+  assert.deepEqual(
+    f.api.getState().scenarios.map((s) => s.name),
+    ['Tokyo custom replay'],
+  );
+  assert.deepEqual(calls, ['http://localhost/scenarios/tokyo/vehicles.czml']);
+  assert.ok(
+    Cartesian3.equalsEpsilon(
+      f.viewer.camera.lastFlight.destination,
+      Cartesian3.fromDegrees(139.8, 35.6, 9000),
+      1e-10,
+    ),
+  );
+  assert.equal(f.viewer.camera.lastFlight.orientation.pitch, -Math.PI / 4);
+  assert.equal(f.api.getState().playing, false);
+});
+
+test('catalog failures surface the URL and cancelled catalog fetch cannot resurrect replay', async (t) => {
+  const bad = fixture(t, null, async () => ({ ok: false, status: 404 }));
+  await assert.rejects(bad.layer.enable(bad.viewer), /catalog.json: HTTP 404/);
+  assert.equal(bad.api.getState().loading, false);
+  assert.equal(bad.viewer.dataSources.length, 0);
+  let unblock;
+  const f = fixture(t, null, async () => {
+    await new Promise((resolve) => {
+      unblock = resolve;
+    });
+    return {
+      ok: true,
+      json: async () => ({
+        version: 1,
+        defaultScenario: 'x',
+        scenarios: ['x.json'],
+      }),
+    };
+  });
+  const pending = f.layer.enable(f.viewer);
+  await new Promise((resolve) => setImmediate(resolve));
+  await f.layer.disable();
+  unblock();
+  // A transport may ignore abort. Validation must still observe cancellation
+  // before fetching descriptors or taking over the clock.
+  await assert.rejects(pending, /abort/i);
+  assert.equal(f.api.getState().enabled, false);
+  assert.equal(f.viewer.dataSources.length, 0);
 });
