@@ -77,6 +77,39 @@ export function atcLinePositions(coordinates) {
   return result;
 }
 
+/** Frame the current map focus from above in a north-aligned world frame. */
+export function orientAtcCamera(viewer) {
+  const camera = viewer.camera;
+  if (!camera) return;
+  const canvas = viewer.scene.canvas;
+  const center =
+    canvas &&
+    camera.pickEllipsoid(
+      new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2),
+      Cesium.Ellipsoid.WGS84,
+    );
+  const position = Cesium.Cartesian3.clone(camera.positionWC);
+  const focus = Cesium.Cartographic.fromCartesian(center || position);
+  const height = Math.max(
+    100,
+    center ? Cesium.Cartesian3.distance(position, center) : focus.height,
+  );
+  camera.cancelFlight();
+  // Tracking owns a local reference frame and would undo the orientation on
+  // the next frame. Release it before installing the world-frame overview.
+  viewer.trackedEntity = undefined;
+  camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+  camera.setView({
+    destination: Cesium.Cartesian3.fromRadians(
+      focus.longitude,
+      focus.latitude,
+      height,
+    ),
+    orientation: { heading: 0, pitch: -Cesium.Math.PI_OVER_TWO, roll: 0 },
+  });
+  viewer.scene.requestRender?.();
+}
+
 /** Prepare self-hosted boundary geometry without mutating the active map. */
 export async function createAtcPresentation(
   viewer,
@@ -124,6 +157,7 @@ export async function createAtcPresentation(
   };
   const presentation = {
     enter(settings) {
+      orientAtcCamera(viewer);
       if (snapshot) return;
       snapshot = [];
       if (!attached) {

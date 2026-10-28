@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import * as Cesium from 'cesium';
 import {
   normalizeAtcSettings,
+  orientAtcCamera,
   atcLinePositions,
   createAtcPresentation,
 } from './atc.js';
@@ -184,3 +185,55 @@ test('both shipped Natural Earth datasets contain valid global line geometry', a
     }
   }
 });
+
+for (const hasCenter of [true, false]) {
+  test(`ATC camera frames north-up and top-down ${hasCenter ? 'over the current focus' : 'when looking above the horizon'}`, () => {
+    const focus = Cesium.Cartesian3.fromDegrees(4.437, 51.956);
+    const position = Cesium.Cartesian3.fromDegrees(4, 51, 14000);
+    const calls = [];
+    const viewer = {
+      trackedEntity: { id: 'previous' },
+      scene: {
+        canvas: { clientWidth: 800, clientHeight: 600 },
+        requestRender() {},
+      },
+      camera: {
+        positionWC: position,
+        pickEllipsoid(point) {
+          assert.deepEqual(point, new Cesium.Cartesian2(400, 300));
+          return hasCenter ? focus : undefined;
+        },
+        cancelFlight() {
+          calls.push('cancel');
+        },
+        lookAtTransform(transform) {
+          assert.equal(transform, Cesium.Matrix4.IDENTITY);
+          assert.equal(viewer.trackedEntity, undefined);
+          calls.push('world');
+        },
+        setView(options) {
+          calls.push('view');
+          this.lastView = options;
+        },
+      },
+    };
+    orientAtcCamera(viewer);
+    assert.deepEqual(calls, ['cancel', 'world', 'view']);
+    const view = viewer.camera.lastView;
+    assert.deepEqual(view.orientation, {
+      heading: 0,
+      pitch: -Math.PI / 2,
+      roll: 0,
+    });
+    const actual = Cesium.Cartographic.fromCartesian(view.destination);
+    const expected = Cesium.Cartographic.fromCartesian(
+      hasCenter ? focus : position,
+    );
+    assert.ok(Math.abs(actual.longitude - expected.longitude) < 1e-10);
+    assert.ok(Math.abs(actual.latitude - expected.latitude) < 1e-10);
+    const height = hasCenter
+      ? Cesium.Cartesian3.distance(position, focus)
+      : 14000;
+    assert.ok(Math.abs(actual.height - height) < 0.001);
+  });
+}

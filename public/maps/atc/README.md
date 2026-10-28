@@ -28,8 +28,10 @@ ATC uses a dark ellipsoid with no basemap imagery, terrain shading, atmospheric
 haze or Google 3D tiles. Coastlines and country borders can be enabled separately.
 Line color, brightness and width are configurable; preferences are saved in
 browser local storage as `gev:atc-map:v1`. The ATC map source is included in
-shared-view map selection. Existing camera orientation is preserved when switching
-maps so changing presentation does not interrupt tracking.
+shared-view map selection. Entering ATC switches to a north-up, top-down overview of the current map focus,
+keeping approximately the same viewing distance. Active vehicle tracking and
+camera flights are released so they cannot immediately undo that orientation.
+Normal camera controls remain available after activation.
 
 GeoJSON is loaded once per controller, validated as line geometry, and rendered
 in two batched polyline collections. Long segments are sampled along their shortest

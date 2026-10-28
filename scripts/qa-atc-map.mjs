@@ -25,8 +25,13 @@ try {
   await page.waitForSelector('[data-map-presentation="atc"]', {
     visible: true,
   });
-  const before = await page.evaluate(() => {
+  const before = await page.evaluate(async () => {
+    const Cesium = await import('/node_modules/.vite/deps/cesium.js');
     const app = window.__godsEyeView;
+    app.viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(10, 50, 4500000),
+      orientation: { heading: 1.2, pitch: -0.65, roll: 0.2 },
+    });
     return {
       id: app.styleManager.mapStackController.getActiveId(),
       count: app.viewer.scene.primitives.length,
@@ -53,11 +58,17 @@ try {
     const app = window.__godsEyeView;
     const { viewer, styleManager } = app;
     const Cesium = await import('/node_modules/.vite/deps/cesium.js');
+    const orientation = {
+      heading: viewer.camera.heading,
+      pitch: viewer.camera.pitch,
+      roll: viewer.camera.roll,
+    };
     viewer.camera.setView({
       destination: Cesium.Cartesian3.fromDegrees(10, 50, 4500000),
     });
     viewer.scene.requestRender();
     return {
+      orientation,
       imagery: viewer.imageryLayers.length,
       lighting: viewer.scene.globe.enableLighting,
       atmosphere: viewer.scene.skyAtmosphere.show,
@@ -69,6 +80,22 @@ try {
     };
   });
   assert.equal(state.id, 'atc');
+  const north = Math.min(
+    Math.abs(state.orientation.heading),
+    Math.abs(state.orientation.heading - 2 * Math.PI),
+  );
+  assert.ok(north < 1e-6, 'ATC camera is north-up');
+  assert.ok(
+    Math.abs(state.orientation.pitch + Math.PI / 2) < 1e-6,
+    'ATC camera looks straight down',
+  );
+  assert.ok(
+    Math.min(
+      Math.abs(state.orientation.roll),
+      Math.abs(state.orientation.roll - 2 * Math.PI),
+    ) < 1e-6,
+    'ATC camera has no roll',
+  );
   assert.equal(state.imagery, 0);
   assert.equal(state.lighting, false);
   assert.equal(state.atmosphere, false);
