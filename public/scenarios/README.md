@@ -93,6 +93,6 @@ compatible and normalize to `uas`.
 
 Edit `src/data/vehiclePresentation.js` to configure detection, cockpit and replay
 path colors. Civil uses cyan, military uses amber, and UAS uses magenta for
-detection and cockpit instruments but cyan for its path. Replay paths use these
+detection, cockpit instruments and paths. Replay paths use these
 settings at runtime, overriding authored CZML path colors for aerial vehicles.
 Emergency alerts retain their distinct warning colors.

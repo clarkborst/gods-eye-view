@@ -1,5 +1,5 @@
 /** Single source for aircraft detection, cockpit and replay path colors.
- * UAS paths use cyan; UAS detection and cockpit accents use magenta.
+ * UAS paths, detection and cockpit accents use magenta.
  */
 export const VEHICLE_PRESENTATION = Object.freeze({
   civil: Object.freeze({
@@ -15,7 +15,7 @@ export const VEHICLE_PRESENTATION = Object.freeze({
   uas: Object.freeze({
     detection: '#ff00ff',
     cockpit: '#ff00ff',
-    path: '#22e0ff',
+    path: '#ff00ff',
   }),
 });
 
