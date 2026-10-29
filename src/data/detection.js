@@ -12,7 +12,7 @@ import {
   acquireAlpha,
   appendCornerBracket,
   appendTransitBracket,
-  resolveTier,
+  resolveDetectionColor,
   measureTrackLabel,
   nearFarScale,
   rectIntersectsAny,
@@ -1332,8 +1332,6 @@ function _drawOverlay(frame) {
   // handed to the shared stable arbiter.
   _ctx.font = FONT;
   if (!_charWidth) _charWidth = _ctx.measureText('0000000000').width / 10 || 6;
-  const tiers = _theme.tiers || null;
-  const colorFor = (key) => (tiers && tiers[key]) || _theme.line;
   const bracketPaths = new Map();
   const pathFor = (map, color, alpha) => {
     const band = Math.max(
@@ -1411,7 +1409,7 @@ function _drawOverlay(frame) {
 
     // Tier color drives the bracket, accent bar, and leader line for this object.
     // The bracket follows the same linear radial keyhole fade as its callout.
-    const color = colorFor(resolveTier(obj));
+    const color = resolveDetectionColor(obj, _theme);
     const keyholeAlpha = keyholeLabelAlphaFromGeometry(sx, sy, keyhole);
     const sonarFactor =
       sonarActive && !obj.skipLabel ? sonarSampler.at(sx, sy) : 1;

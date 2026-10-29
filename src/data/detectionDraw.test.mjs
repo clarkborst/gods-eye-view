@@ -11,6 +11,7 @@ import {
   acquireAlpha,
   appendCornerBracket,
   resolveTier,
+  resolveDetectionColor,
   measureLabelCard,
   measureTrackLabel,
   nearFarScale,
@@ -202,4 +203,29 @@ test('formatKnots writes the unit in the UI language', async () => {
     setLocale('en');
   }
   assert.equal(formatKnots(9.5), '10 kn');
+});
+
+test('replay identity colors override sensor themes while live tiers retain their palette', async () => {
+  const { DETECTION_THEME_MAP } =
+    await import('../overlays/worldOverlayTokens.js');
+  for (const theme of Object.values(DETECTION_THEME_MAP)) {
+    for (const [tier, color] of Object.entries({
+      civil: '#22e0ff',
+      military: '#ffb347',
+      uav: '#ff00ff',
+    })) {
+      assert.equal(
+        resolveDetectionColor({ type: 'AIR', tier, simulated: true }, theme),
+        color,
+      );
+      assert.equal(
+        resolveDetectionColor({ type: 'AIR', tier }, theme),
+        theme.tiers[tier],
+      );
+    }
+    assert.equal(
+      resolveDetectionColor({ type: 'VEH', simulated: true }, theme),
+      theme.tiers.vehicle,
+    );
+  }
 });

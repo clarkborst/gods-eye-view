@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import { REPLAY_DETECTION_COLORS } from '../../overlays/worldOverlayTokens.js';
 import { classifyAircraft } from '../../data/aircraftClass.js';
 import { applyTrackedCameraFrame } from '../../data/trackedCamera.js';
 import {
@@ -38,6 +39,23 @@ export function createSimulationContacts({
   const air = (entity, time) =>
     ['aircraft', 'drone'].includes(entityCategory(entity, time));
   const value = (entity, key, time) => entity.properties?.[key]?.getValue(time);
+  const classification = (entity, time) => {
+    const category = entityCategory(entity, time);
+    const aircraftClass =
+      category === 'drone'
+        ? 'uav'
+        : value(entity, 'aircraftClass', time) ||
+          classifyAircraft({ typeCode: value(entity, 'typeCode', time) });
+    const military = value(entity, 'military', time) === true;
+    const tier = !air(entity, time)
+      ? 'vehicle'
+      : aircraftClass === 'uav'
+        ? 'uav'
+        : military
+          ? 'military'
+          : 'civil';
+    return { aircraftClass, military, tier };
+  };
   const emit = (type, detail) => {
     if (eventTarget?.dispatchEvent && typeof CustomEvent !== 'undefined')
       eventTarget.dispatchEvent(new CustomEvent(type, { detail }));
@@ -82,11 +100,7 @@ export function createSimulationContacts({
         ? (Cesium.Math.toDegrees(Math.atan2(local.x, local.y)) + 360) % 360
         : Number(value(entity, 'heading', time)) || 0;
     const category = entityCategory(entity, time);
-    const aircraftClass =
-      category === 'drone'
-        ? 'uav'
-        : value(entity, 'aircraftClass', time) ||
-          classifyAircraft({ typeCode: value(entity, 'typeCode', time) });
+    const { aircraftClass, military, tier } = classification(entity, time);
     return {
       id: entity.id,
       icao24: entity.id,
@@ -98,6 +112,8 @@ export function createSimulationContacts({
       simulated: true,
       category,
       aircraftClass,
+      military,
+      tier,
       position,
       latitude: Cesium.Math.toDegrees(cartographic.latitude),
       longitude: Cesium.Math.toDegrees(cartographic.longitude),
@@ -190,6 +206,9 @@ export function createSimulationContacts({
         object.position = position;
         object.id = labels ? entity.name || entity.id : '';
         object.type = air(entity, time) ? 'AIR' : 'VEH';
+        Object.assign(object, classification(entity, time), {
+          simulated: true,
+        });
         object.metric = labels ? 'CZML' : '';
         object.skipLabel = selected;
         result.push(object);
@@ -321,7 +340,7 @@ export function createSimulationContacts({
         proxy.gevLabelModel = {
           title: info.callsign,
           details: [info.source],
-          accent: '#39d0ff',
+          accent: REPLAY_DETECTION_COLORS[info.tier],
         };
       }
       proxy.gevSelectionOrigin = origin;

@@ -8,6 +8,7 @@
  * GPU/MSDF renderer. The Canvas2D overlay (detection.js) imports these and
  * supplies the actual drawing surface.
  */
+import { REPLAY_DETECTION_COLORS } from '../overlays/worldOverlayTokens.js';
 import { formatNumber, t } from '../i18n/index.js';
 
 /** @constant {number} Max characters shown for a label's primary (id) line. */
@@ -139,6 +140,16 @@ export function resolveTier(obj) {
   if (t === 'SAT') return 'space';
   if (t === 'VEH') return 'vehicle';
   return 'civil';
+}
+
+/** Replay identity colors stay stable across sensor themes. */
+export function resolveDetectionColor(obj, theme) {
+  const tier = resolveTier(obj);
+  return (
+    (obj?.simulated && REPLAY_DETECTION_COLORS[tier]) ||
+    theme.tiers?.[tier] ||
+    theme.line
+  );
 }
 
 /**

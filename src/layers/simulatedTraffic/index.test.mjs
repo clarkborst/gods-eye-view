@@ -11,6 +11,7 @@ import {
   Event,
   Matrix4,
   TrackingReferenceFrame,
+  ConstantProperty,
 } from 'cesium';
 import { createSimulatedTrafficLayer } from './index.js';
 
@@ -477,4 +478,39 @@ test('catalog failures surface the URL and cancelled catalog fetch cannot resurr
   await assert.rejects(pending, /abort/i);
   assert.equal(f.api.getState().enabled, false);
   assert.equal(f.viewer.dataSources.length, 0);
+});
+
+test('replay classification distinguishes civil, military and UAV contacts through tracking and seeks', async (t) => {
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  const aircraft = f.viewer.dataSources.get(0).entities.values;
+  const drone = f.viewer.dataSources.get(1).entities.values[0];
+  aircraft[1].properties.addProperty('military', true);
+  aircraft[2].properties.aircraftClass = new ConstantProperty('uav');
+  aircraft[2].properties.addProperty('military', true);
+  const tierFor = (entity) =>
+    f.layer.getDetectableObjects().find((row) => row.sourceId === entity.id)
+      .tier;
+  assert.equal(tierFor(aircraft[0]), 'civil');
+  assert.equal(tierFor(aircraft[1]), 'military');
+  assert.equal(tierFor(aircraft[2]), 'uav');
+  assert.equal(tierFor(drone), 'uav');
+  for (const entity of [aircraft[0], aircraft[1], aircraft[2], drone]) {
+    const tier = tierFor(entity);
+    assert.equal(f.layer.contacts.trackById(entity.id), true);
+    f.api.seek(300);
+    assert.equal(f.layer.contacts.getTrackedInfo().tier, tier);
+    assert.equal(
+      f.layer.contacts.getTrackedInfo().military,
+      [aircraft[1], aircraft[2]].includes(entity),
+    );
+    f.viewer.trackedEntity.show = false;
+    assert.equal(f.layer.contacts.getTrackedInfo().tier, tier);
+    f.viewer.trackedEntity.show = true;
+    assert.equal(tierFor(entity), tier);
+    f.layer.contacts.stopTracking();
+  }
+  // Cached detection objects must update if authored metadata changes.
+  aircraft[1].properties.military = new ConstantProperty(false);
+  assert.equal(tierFor(aircraft[1]), 'civil');
 });

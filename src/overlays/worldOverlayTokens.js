@@ -104,6 +104,12 @@ export const SKY_PLATE_SCALE = 0.22;
  * Each keeps its theme's hue so a plate reads as amber/green/thermal chrome
  * rather than a neutral box dropped on top of the sensor image.
  */
+export const REPLAY_DETECTION_COLORS = Object.freeze({
+  civil: '#22e0ff',
+  military: '#ffb347',
+  uav: '#ff00ff',
+});
+
 export const DETECTION_THEME_MAP = Object.freeze({
   retro: {
     line: 'rgba(255, 176, 56, 0.88)',
@@ -119,6 +125,7 @@ export const DETECTION_THEME_MAP = Object.freeze({
     scanline: 0.085,
     tiers: {
       civil: '#ffd27a',
+      uav: '#ff00ff',
       military: '#ff8a3c',
       sea: '#ffc06a',
       space: '#ffe0a0',
@@ -149,6 +156,7 @@ export const DETECTION_THEME_MAP = Object.freeze({
     scanline: 0.09,
     tiers: {
       civil: '#8fe89a',
+      uav: '#ff00ff',
       military: '#ff5a47',
       sea: '#a6f0c0',
       space: '#9fe8ff',
@@ -179,6 +187,7 @@ export const DETECTION_THEME_MAP = Object.freeze({
     scanline: 0.04,
     tiers: {
       civil: '#ffffff',
+      uav: '#ff00ff',
       military: '#ff7a5c',
       sea: '#ffd0b0',
       space: '#d0e0ff',
@@ -209,6 +218,7 @@ export const DETECTION_THEME_MAP = Object.freeze({
     scanline: 0.05,
     tiers: {
       civil: '#22e0ff',
+      uav: '#ff00ff',
       military: '#ffb347',
       sea: '#3fe0c8',
       space: '#bda4ff',

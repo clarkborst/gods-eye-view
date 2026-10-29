@@ -61,3 +61,26 @@ assets. Catalog validation is strict: correct invalid entries rather than having
 scenarios silently disappear. Initial enable failures are reported by the layer.
 Selecting a valid scenario frames its location and pauses at 1×. Live/replay
 isolation and cockpit behavior are unchanged.
+
+## Replay aircraft identification colors
+
+Replay detection brackets, labels and leaders use cyan for civil aircraft,
+amber for military aircraft, and magenta for UAVs in every display theme.
+Set `properties.military` to the JSON boolean `true` for military identity;
+type codes and callsigns do not imply military status. For example:
+
+```json
+"properties": {
+  "vehicleCategory": "aircraft",
+  "aircraftClass": "helicopter",
+  "typeCode": "AH64",
+  "military": true
+}
+```
+
+`vehicleCategory: "drone"` or `aircraftClass: "uav"` selects the UAV tier.
+Type codes recognized by the aircraft classifier as UAVs also select that tier
+when no explicit class is supplied. UAV coloring takes precedence over military
+coloring, while the contact retains its military flag. Classification is evaluated
+at replay time and survives selection, seeking and cockpit following. CZML trail
+colors and GLB model materials remain independently authored.
