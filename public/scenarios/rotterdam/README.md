@@ -9,7 +9,8 @@ make no claim that the illustrated sites or trajectories are operationally valid
 All files cover **26 October 2026, 10:00–10:20 UTC** and can be loaded together:
 
 - `aircraft.czml`: a narrow-body departure, a descending arrival with landing and
-  taxi, and a later business-jet departure along an approximate runway 24 axis.
+  taxi, a later business-jet departure along an approximate runway 24 axis, and
+  a fictional military AH-64 Apache helicopter circuit with takeoff, hover and landing.
 - `drones.czml`: a slow inspection circuit with hover and vertical takeoff/landing,
   and a survey lawnmower pattern southeast of the runway.
 - `ground.czml`: a slow apron inspection robot with stops and a repeated circuit.
@@ -123,3 +124,13 @@ cached mesh/terrain heights; unresolved heights fall back to the ellipsoid until
 surface data is available. Lines update with movement, replay seeking and source
 visibility, without starting additional traffic feeds. The first-person subject
 is omitted along with its hidden model; other visible aircraft keep their lines.
+
+## Apache example
+
+`sim:rotterdam:apache-01` is included in both the aircraft and mixed scenarios.
+It sets `vehicleCategory: "aircraft"`, `aircraftClass: "helicopter"`,
+`typeCode: "AH64"` and `military: true`, giving it the military detection tier
+and amber brackets/labels. Its authored trail is amber too. The bundled Bell 206
+model is a visual stand-in; an Apache-specific GLB is not included. It uses the
+same synthetic 43 m ellipsoid surface datum as the other examples, climbs into a
+low-altitude circuit, hovers from 10:12 to 10:14 UTC, and lands by 10:15 UTC.

@@ -126,7 +126,7 @@ try {
     true,
   );
   await page.click('[data-collapse-target="data-panel"]');
-  assert.equal((await state()).vehicles.length, 6);
+  assert.equal((await state()).vehicles.length, 7);
   assert.equal((await state()).playing, false);
   checkingSimulation = true;
   assert.deepEqual(
@@ -152,7 +152,7 @@ try {
         }
       };
       visit(window.__godsEyeView.viewer.scene.primitives);
-      return ready.size === 5;
+      return ready.size === 6;
     },
     { timeout: 60000 },
   );
@@ -177,7 +177,7 @@ try {
       diagnostics: app.styleManager.getDetectionDiagnostics(),
     };
   });
-  assert.equal(sharedIdentification.count, 6);
+  assert.equal(sharedIdentification.count, 7);
   assert.notEqual(sharedIdentification.mode, 'OFF');
   await page.waitForFunction(
     () =>
@@ -561,7 +561,7 @@ try {
     () =>
       window.__godsEyeView.dataManager.layers
         .get('simulated-traffic')
-        .module.simulation.getState().vehicles.length === 6,
+        .module.simulation.getState().vehicles.length === 7,
   );
   await page.$eval(`#simulation-playback input[type="range"]`, (node) => {
     node.value = '520';

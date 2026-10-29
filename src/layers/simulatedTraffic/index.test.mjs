@@ -112,7 +112,7 @@ test('real CZML examples load as one paused scenario with dynamic aircraft, dron
   assert.deepEqual(
     f.api.getState().categories.map((c) => [c.id, c.count]),
     [
-      ['aircraft', 3],
+      ['aircraft', 4],
       ['drone', 2],
       ['ground-robot', 1],
     ],
@@ -260,8 +260,8 @@ test('aircraft use existing GLBs, drones use the quadcopter GLB and all contacts
   assert.equal(aircraft[0].point, undefined);
   assert.ok(f.viewer.dataSources.get(2).entities.values[0].point);
   const identified = f.layer.getDetectableObjects();
-  assert.equal(identified.length, 6);
-  assert.equal(identified.filter((row) => row.type === 'AIR').length, 5);
+  assert.equal(identified.length, 7);
+  assert.equal(identified.filter((row) => row.type === 'AIR').length, 6);
   assert.equal(identified[0].sourceId, aircraft[0].id);
   assert.equal(identified[0].id, aircraft[0].name);
   assert.equal(identified[0].metric, 'CZML');
@@ -281,7 +281,7 @@ test('aircraft use existing GLBs, drones use the quadcopter GLB and all contacts
   assert.equal(drones[0].model.scale.getValue(time), 2);
   f.api.setParams({ labels: true });
   f.api.seek(300);
-  assert.equal(f.layer.contacts.getAllPositions().length, 5);
+  assert.equal(f.layer.contacts.getAllPositions().length, 6);
   assert.equal(f.layer.contacts.trackById(drones[0].id), true);
   const tracked = f.layer.contacts.getTrackedInfo();
   assert.equal(tracked.category, 'drone');
@@ -513,4 +513,40 @@ test('replay classification distinguishes civil, military and UAV contacts throu
   // Cached detection objects must update if authored metadata changes.
   aircraft[1].properties.military = new ConstantProperty(false);
   assert.equal(tierFor(aircraft[1]), 'civil');
+});
+
+test('Rotterdam Apache is a military helicopter with a hover and bounded flight speeds', async (t) => {
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  const id = 'sim:rotterdam:apache-01';
+  const entity = f.viewer.dataSources.get(0).entities.getById(id);
+  assert.ok(entity);
+  assert.equal(
+    entity.model.uri.getValue(f.viewer.clock.currentTime),
+    '/models/bell206.glb',
+  );
+  assert.equal(
+    f.layer.getDetectableObjects().find((row) => row.sourceId === id).tier,
+    'military',
+  );
+  assert.equal(f.layer.contacts.trackById(id), true);
+  f.api.seek(300);
+  const info = f.layer.contacts.getTrackedInfo();
+  assert.equal(info.aircraftClass, 'helicopter');
+  assert.equal(info.military, true);
+  assert.equal(info.tier, 'military');
+  assert.ok(info.velocityMps > 0 && info.velocityMps < 80);
+  f.api.seek(780);
+  assert.equal(f.layer.contacts.getTrackedInfo().velocityMps, 0);
+  f.api.seek(960);
+  assert.ok(Math.abs(f.layer.contacts.getTrackedInfo().altitudeM - 43) < 0.01);
+  const data = (await packets('aircraft.czml')).find(
+    (packet) => packet.id === id,
+  );
+  const samples = data.position.cartographicDegrees;
+  for (let i = 4; i < samples.length; i += 4) {
+    const a = Cartesian3.fromDegrees(...samples.slice(i - 3, i));
+    const b = Cartesian3.fromDegrees(...samples.slice(i + 1, i + 4));
+    assert.ok(Cartesian3.distance(a, b) / (samples[i] - samples[i - 4]) < 80);
+  }
 });
