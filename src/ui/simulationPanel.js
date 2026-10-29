@@ -15,7 +15,7 @@ export function createSimulationPanel({ container, controller }) {
   const categoryLabel = (id) =>
     ({
       aircraft: t('Aircraft'),
-      drone: t('Aerial drones'),
+      uas: t('UAS'),
       'ground-robot': t('Ground robots'),
     })[id] || id;
   const document = container.ownerDocument;

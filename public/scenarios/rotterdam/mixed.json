@@ -13,7 +13,7 @@
   },
   "files": [
     "aircraft.czml",
-    "drones.czml",
+    "uas.czml",
     "ground.czml"
   ]
 }

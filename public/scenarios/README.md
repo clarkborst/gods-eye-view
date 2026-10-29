@@ -51,7 +51,7 @@ CZML resolve from the CZML file's URL. Assets in `public/` are publicly served.
 CZML owns replay dates, availability, sampled positions, orientation and vehicle
 categories. Every file needs a `document` packet with a valid `clock.interval`.
 The replay spans the union of those intervals. Entity IDs must be unique across
-all files in a scenario. Use `properties.vehicleCategory` (`aircraft`, `drone`,
+all files in a scenario. Use `properties.vehicleCategory` (`aircraft`, `uas`,
 `ground-robot`, `vessel`, or another category) for automatic category controls.
 See [Rotterdam examples](rotterdam/README.md) for working movement files.
 
@@ -65,7 +65,7 @@ isolation and cockpit behavior are unchanged.
 ## Replay aircraft identification colors
 
 Replay detection brackets, labels and leaders use cyan for civil aircraft,
-amber for military aircraft, and magenta for UAVs in every display theme.
+amber for military aircraft, and magenta for UAS in every display theme.
 Set `properties.military` to the JSON boolean `true` for military identity;
 type codes and callsigns do not imply military status. For example:
 
@@ -78,9 +78,21 @@ type codes and callsigns do not imply military status. For example:
 }
 ```
 
-`vehicleCategory: "drone"` or `aircraftClass: "uav"` selects the UAV tier.
-Type codes recognized by the aircraft classifier as UAVs also select that tier
-when no explicit class is supplied. UAV coloring takes precedence over military
+`vehicleCategory: "uas"` or `aircraftClass: "uas"` selects the UAS tier.
+Type codes recognized by the aircraft classifier as UAS also select that tier
+when no explicit class is supplied. UAS coloring takes precedence over military
 coloring, while the contact retains its military flag. Classification is evaluated
-at replay time and survives selection, seeking and cockpit following. CZML trail
-colors and GLB model materials remain independently authored.
+at replay time and survives selection, seeking and cockpit following. Replay path
+colors also use the shared palette. GLB model materials remain independently authored.
+
+## Shared vehicle presentation
+
+UAS means **uncrewed aerial system**. New scenarios use `vehicleCategory: "uas"`
+or `aircraftClass: "uas"`. The previous `drone` and `uav` input values remain
+compatible and normalize to `uas`.
+
+Edit `src/data/vehiclePresentation.js` to configure detection, cockpit and replay
+path colors. Civil uses cyan, military uses amber, and UAS uses magenta for
+detection and cockpit instruments but cyan for its path. Replay paths use these
+settings at runtime, overriding authored CZML path colors for aerial vehicles.
+Emergency alerts retain their distinct warning colors.

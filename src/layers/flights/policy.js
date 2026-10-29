@@ -1,3 +1,4 @@
+import { VEHICLE_PRESENTATION } from '../../data/vehiclePresentation.js';
 import * as Cesium from 'cesium';
 import { EMERGENCY_TINT_CSS } from '../../data/aircraftEmergency.js';
 
@@ -5,7 +6,9 @@ export const FOCUS_EVIDENCE_DEV = import.meta.env?.DEV === true;
 
 /** Amber tint for known-military aircraft rendered by this layer (matches the military layer's icon color). */
 
-export const MIL_TINT = Cesium.Color.fromCssColorString('#FFB800');
+export const MIL_TINT = Cesium.Color.fromCssColorString(
+  VEHICLE_PRESENTATION.military.detection,
+);
 
 /** Red tint for aircraft broadcasting an emergency (7500/7600/7700 or ADS-B status). */
 

@@ -57,7 +57,7 @@ Start with the included data sources, then add your own. Each layer is a separat
 ## 🎛️ What This Thing Does
 
 - **🛩️ Cockpit view:** Ride inside a tracked flight — the camera holds the terrain under you all the way down.
-- **⏱️ CZML simulation:** Replay synthetic aircraft, aerial drones, and ground robots around Rotterdam Airport with a scrubber, forward/reverse playback, speed controls, category filters, and vehicle following. Enable **Simulated Traffic** under **Data Layers → Movement**. [Scenario files and authoring guide](public/scenarios/rotterdam/README.md).
+- **⏱️ CZML simulation:** Replay synthetic aircraft, uncrewed aerial systems (UAS), and ground robots around Rotterdam Airport with a scrubber, forward/reverse playback, speed controls, category filters, and vehicle following. Enable **Simulated Traffic** under **Data Layers → Movement**. [Scenario files and authoring guide](public/scenarios/rotterdam/README.md).
 - **📡 Contacts:** A 250 km roster of everything near your target — step through live aircraft and drop into any cockpit.
 - **🎯 Click-to-track anything:** Camera locks on, draws a fading trail, surfaces full metadata — and a tracked fire or vessel hands you off to the nearest live camera in one click.
 - **🖊️ Voice whiteboard:** Speak annotations onto the world — real boundary polygons, marks, and routes.
@@ -346,7 +346,7 @@ Click **GEV MIC**, grant the microphone, and just talk. This is more than a voic
 
 Thirty tools, four jobs — the commands below come straight from the product's voice test suite and tool playbook:
 
-**🎥 Direct it** — drone-operator camera verbs:
+**🎥 Direct it** — UAS-operator camera verbs:
 
 “Rotate the globe” spins Earth to the right continuously; ask for left, a speed,
 or stop. If it refuses, follow its reset-and-rotate or further-zoom guidance;
@@ -460,7 +460,7 @@ Once the basics click, run these:
 | **🚢 Port call**                    | Vessels on over the Port of Long Beach. Click a tanker for its tactical card and wake trail — then hit **NEAREST** in the CCTV panel and look at the same water through a public camera.                  |
 | **📻 Tokyo FM**                     | Orbit Shibuya with the **Radio** layer on — then drag the analog tuner needle: every position snaps to a real station and the globe flies to whoever's broadcasting.                                      |
 | **🔥 Fire line**                    | FIRMS over California. Click a detection — the camera dives to it — read the intensity, then hit **NEAREST** in the CCTV panel for a ground view.                                                         |
-| **🚶 Ask for a walking route** _🎙️_ | Tell the world where you want to go and watch a real street-following route trace itself through the 3D city — then _"fly it"_: banked turns, eased ends, a camera that leads the path like a drone shot. |
+| **🚶 Ask for a walking route** _🎙️_ | Tell the world where you want to go and watch a real street-following route trace itself through the 3D city — then _"fly it"_: banked turns, eased ends, a camera that leads the path like a UAS shot. |
 | **📏 Measure LAX to DFW** _🎙️_      | _"How far is LAX from DFW?"_ — an arrow spans the country, the distance lands in the caption, and the endpoints stay pinned to the real world as you orbit.                                               |
 | **🚀 Launch replay**                | Open **Space Missions**, pick a launch from the last 30 days, and ride the T-minus countdown through ascent to orbit — scrub it at 0.25×–4×. Labeled `RECONSTRUCTED ESTIMATE`, because it is one.         |
 | **🪦 Walk the boneyard**            | Fly from regional context down into dense, fully resolved rows of retired aircraft.                                                                                                                       |
@@ -474,7 +474,7 @@ _Ask the planet: a military contact's last ~24 hours of real trace history, reso
 
 ![Asking for a walking route and flying the generated path through the 3D city](docs/media/10-walking-route-flythrough.gif)
 
-_"Draw the walking route… now fly it" — banked turns, eased ends, the camera leading the path like a drone shot._
+_"Draw the walking route… now fly it" — banked turns, eased ends, the camera leading the path like a UAS shot._
 
 ![Descending from regional context into dense rows of retired aircraft at the boneyard](docs/media/08-boneyard.gif)
 

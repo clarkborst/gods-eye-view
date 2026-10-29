@@ -2,7 +2,7 @@
   {
     "id": "document",
     "version": "1.0",
-    "name": "Rotterdam aerial drones \u2014 SYNTHETIC TEST DATA",
+    "name": "Rotterdam uas \u2014 SYNTHETIC TEST DATA",
     "clock": {
       "interval": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
       "currentTime": "2026-10-26T10:00:00Z",
@@ -12,12 +12,12 @@
     }
   },
   {
-    "id": "sim:rotterdam:inspection-uav",
-    "name": "SIM UAV01 \u00b7 inspection",
+    "id": "sim:rotterdam:inspection-uas",
+    "name": "SIM UAS01 \u00b7 inspection",
     "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
-    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional slow multirotor inspection circuit southeast of the runway, with vertical takeoff, hover, two circuits and landing. Not an authorized drone operation.</p>",
+    "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional slow multirotor inspection circuit southeast of the runway, with vertical takeoff, hover, two circuits and landing. Not an authorized UAS operation.</p>",
     "properties": {
-      "vehicleCategory": "drone",
+      "vehicleCategory": "uas",
       "simulated": true,
       "airport": "EHRD",
       "altitudeDatum": "WGS84 ellipsoid",
@@ -97,9 +97,9 @@
       "pixelSize": 8,
       "color": {
         "rgba": [
+          34,
+          224,
           255,
-          190,
-          70,
           255
         ]
       },
@@ -114,13 +114,13 @@
       "outlineWidth": 2
     },
     "label": {
-      "text": "SIM UAV01 \u00b7 inspection",
+      "text": "SIM UAS01 \u00b7 inspection",
       "font": "12px sans-serif",
       "fillColor": {
         "rgba": [
+          34,
+          224,
           255,
-          190,
-          70,
           255
         ]
       },
@@ -158,9 +158,9 @@
         "solidColor": {
           "color": {
             "rgba": [
+              34,
+              224,
               255,
-              190,
-              70,
               170
             ]
           }
@@ -169,12 +169,12 @@
     }
   },
   {
-    "id": "sim:rotterdam:survey-uav",
-    "name": "SIM UAV02 \u00b7 survey",
+    "id": "sim:rotterdam:survey UAS",
+    "name": "SIM UAS02 \u00b7 survey",
     "availability": "2026-10-26T10:00:00Z/2026-10-26T10:20:00Z",
     "description": "<p>SYNTHETIC SIMULATION \u2014 not real traffic, flight planning, or authorization.</p><p>Fictional lawnmower survey pattern at approximately 55 metres above the assumed local ground datum, including vertical ascent and descent.</p>",
     "properties": {
-      "vehicleCategory": "drone",
+      "vehicleCategory": "uas",
       "simulated": true,
       "airport": "EHRD",
       "altitudeDatum": "WGS84 ellipsoid",
@@ -246,9 +246,9 @@
       "pixelSize": 8,
       "color": {
         "rgba": [
+          34,
+          224,
           255,
-          190,
-          70,
           255
         ]
       },
@@ -263,13 +263,13 @@
       "outlineWidth": 2
     },
     "label": {
-      "text": "SIM UAV02 \u00b7 survey",
+      "text": "SIM UAS02 \u00b7 survey",
       "font": "12px sans-serif",
       "fillColor": {
         "rgba": [
+          34,
+          224,
           255,
-          190,
-          70,
           255
         ]
       },
@@ -307,9 +307,9 @@
         "solidColor": {
           "color": {
             "rgba": [
+              34,
+              224,
               255,
-              190,
-              70,
               170
             ]
           }

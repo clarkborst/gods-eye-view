@@ -2,8 +2,8 @@
 
 These original, hand-authored examples illustrate plausible movement profiles near
 Rotterdam The Hague Airport (EHRD). They are **not recorded traffic, published
-procedures, surveyed routes, authorized drone operations, or navigation data**.
-Drone operations near an airport require appropriate authorization. The examples
+procedures, surveyed routes, authorized UAS operations, or navigation data**.
+UAS operations near an airport require appropriate authorization. The examples
 make no claim that the illustrated sites or trajectories are operationally valid.
 
 All files cover **26 October 2026, 10:00–10:20 UTC** and can be loaded together:
@@ -11,7 +11,7 @@ All files cover **26 October 2026, 10:00–10:20 UTC** and can be loaded togethe
 - `aircraft.czml`: a narrow-body departure, a descending arrival with landing and
   taxi, a later business-jet departure along an approximate runway 24 axis, and
   a fictional military AH-64 Apache helicopter circuit with takeoff, hover and landing.
-- `drones.czml`: a slow inspection circuit with hover and vertical takeoff/landing,
+- `uas.czml`: a slow inspection circuit with hover and vertical takeoff/landing,
   and a survey lawnmower pattern southeast of the runway.
 - `ground.czml`: a slow apron inspection robot with stops and a repeated circuit.
 
@@ -36,14 +36,14 @@ the document's availability interval. Trails show the preceding three minutes.
 
 Use a document packet with a finite `clock.interval`, unique entity IDs, sampled
 `position`, and `properties.vehicleCategory` on each vehicle. The category value is
-an arbitrary stable string (`aircraft`, `drone`, `ground-robot`, `vessel`, etc.). The
+an arbitrary stable string (`aircraft`, `uas`, `ground-robot`, `vessel`, etc.). The
 panel discovers categories and counts dynamically; there is no vehicle-type
 switch in the clock/controller. Supply CZML point/billboard/model/path styling.
 For models the layer derives orientation from velocity unless explicit orientation
 is present; hovering vehicles with authored attitude should provide orientation.
 
 Scenario descriptors are JSON files alongside these CZML files (`mixed.json`,
-`aircraft.json`, `drones.json`, `ground.json`), listed in `../catalog.json`.
+`aircraft.json`, `uas.json`, `ground.json`), listed in `../catalog.json`.
 Edit their camera views and file lists without changing JavaScript. See
 [scenario authoring](../README.md) for adding locations and editor schemas.
 Files in a combined scenario share the union of their document clock intervals;
@@ -68,14 +68,14 @@ scenario replacement and clock restoration. Evidence is written to the ignored
 `src/layers/simulatedTraffic/` cover clock boundaries, cleanup, replacement races,
 mode restoration and approximate speed envelopes for the example trajectories.
 
-## Aircraft and drone Context / cockpit controls
+## Aircraft and UAS Context / cockpit controls
 
 Aircraft use the existing class-specific aircraft GLB models. Set the optional
 `properties.aircraftClass` to a supported class such as `airliner`, `bizjet`,
 `light`, or `helicopter`; otherwise the layer uses the existing type-code
-classifier. A `drone` uses the original `public/models/quadcopter.glb` survey-drone
+classifier. A `uas` uses the original `public/models/quadcopter.glb` survey UAS
 model. Other categories keep their authored CZML graphics. The replay panel includes label visibility and
-model-size controls, and clicking an aircraft/drone selects its normal
+model-size controls, and clicking an aircraft/UAS selects its normal
 tracked readout and follow camera.
 
 **Simulated Traffic is the only live/replay mode switch.** Context never enables
@@ -85,9 +85,9 @@ select traffic from the new mode. Live movement stays blocked until Simulated
 Traffic is explicitly turned off, which restores the previous live selection.
 
 With simulation enabled, open **Context → Contacts**, select an aircraft or aerial
-drone, then choose **Cockpit**. Context routes its aircraft interface to CZML only:
+UAS, then choose **Cockpit**. Context routes its aircraft interface to CZML only:
 live ADS-B/AIS sources are neither started nor read, including their retained
-caches. Aircraft and drones support the usual Context focus and previous/next
+caches. Aircraft and UAS support the usual Context focus and previous/next
 navigation. Ground robots remain generic map contacts and do not offer an aerial
 cockpit. The cockpit clock and position follow replay time; paused playback does
 not coast forward, and seeks and reverse playback use sampled CZML positions.
@@ -117,7 +117,7 @@ Regenerate the synthetic attitude after editing route positions with:
 node tools/build_rotterdam_aircraft_attitude.mjs
 ```
 
-Vertical altitude lines follow the current aircraft/drone positions, including
+Vertical altitude lines follow the current aircraft/UAS positions, including
 live civil, military and local ADS-B aircraft. One shared renderer retains up to
 256 in-view lines, prioritizing the selected contact. Ground ends use the shared
 cached mesh/terrain heights; unresolved heights fall back to the ellipsoid until

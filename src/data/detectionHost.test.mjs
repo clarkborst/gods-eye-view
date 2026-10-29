@@ -1,3 +1,4 @@
+import { VEHICLE_PRESENTATION } from './vehiclePresentation.js';
 import { readShellSource } from '../testSupport/readShellSource.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -606,7 +607,7 @@ test('space-tier callouts take the heavier plate while air contacts keep the lig
   }
 });
 
-test('surveillance military tier reaches the dedicated render target as shipped red', () => {
+test('surveillance military tier reaches the dedicated render target with the shared military color', () => {
   const env = installEnvironment();
   try {
     initWorldOverlay(env.viewer);
@@ -617,8 +618,8 @@ test('surveillance military tier reaches the dedicated render target as shipped 
     env.postRender.raise();
 
     assert.ok(
-      env.detectionCtx.calls.some(([name, value]) => name === 'strokeStyle' && value === '#ff5a47'),
-      'the production projection/tier/batched-bracket paint path emits surveillance military red',
+      env.detectionCtx.calls.some(([name, value]) => name === 'strokeStyle' && value === VEHICLE_PRESENTATION.military.detection),
+      'the production projection/tier/batched-bracket paint path emits the shared military color',
     );
     assert.ok(env.detectionCtx.calls.some(([name, path]) => name === 'stroke'
       && path instanceof MockPath2D));

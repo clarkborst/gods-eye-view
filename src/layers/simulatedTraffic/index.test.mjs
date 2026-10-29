@@ -103,7 +103,7 @@ function fixture(t, fetchImpl, metadataFetch) {
   return { layer, api: layer.simulation, viewer, holds, owners };
 }
 
-test('real CZML examples load as one paused scenario with dynamic aircraft, drone and ground categories', async (t) => {
+test('real CZML examples load as one paused scenario with dynamic aircraft, uas and ground categories', async (t) => {
   const f = fixture(t);
   await f.layer.enable(f.viewer);
   assert.equal(f.viewer.dataSources.length, 3);
@@ -113,7 +113,7 @@ test('real CZML examples load as one paused scenario with dynamic aircraft, dron
     f.api.getState().categories.map((c) => [c.id, c.count]),
     [
       ['aircraft', 4],
-      ['drone', 2],
+      ['uas', 2],
       ['ground-robot', 1],
     ],
   );
@@ -157,7 +157,7 @@ test('failed replacement retains the previous scenario and reports the error', a
   await f.layer.enable(f.viewer);
   f.api.seek(200);
   fail = true;
-  await assert.rejects(f.api.loadScenario('rotterdam-drones'), /503/);
+  await assert.rejects(f.api.loadScenario('rotterdam-uas'), /503/);
   assert.equal(f.viewer.dataSources.length, 3);
   assert.equal(f.api.getState().scenario, 'rotterdam-mixed');
   assert.equal(f.api.getState().elapsed, 200);
@@ -178,7 +178,7 @@ test('a late scenario load cannot resurrect a disabled layer or replace a newer 
   });
   await f.layer.enable(f.viewer);
   wait = true;
-  const stale = f.api.loadScenario('rotterdam-drones');
+  const stale = f.api.loadScenario('rotterdam-uas');
   await f.api.loadScenario('rotterdam-ground');
   unblock();
   assert.equal(await stale, false);
@@ -196,7 +196,7 @@ test('a late scenario load cannot resurrect a disabled layer or replace a newer 
 
 test('scenario samples have unique identities, monotonic time and plausible speed envelopes', async () => {
   const ids = new Set();
-  for (const file of ['aircraft.czml', 'drones.czml', 'ground.czml']) {
+  for (const file of ['aircraft.czml', 'uas.czml', 'ground.czml']) {
     const data = await packets(file);
     assert.equal(data[0].id, 'document');
     assert.equal(
@@ -208,7 +208,7 @@ test('scenario samples have unique identities, monotonic time and plausible spee
       ids.add(entity.id);
       assert.equal(entity.properties.simulated, true);
       const samples = entity.position.cartographicDegrees;
-      const limit = { aircraft: 250, drone: 10, 'ground-robot': 3 }[
+      const limit = { aircraft: 250, uas: 10, 'ground-robot': 3 }[
         entity.properties.vehicleCategory
       ];
       for (let i = 4; i < samples.length; i += 4) {
@@ -247,15 +247,15 @@ test('malformed documents and duplicate IDs fail without taking over the viewer 
   assert.equal(duplicate.api.getState().active, false);
 });
 
-test('aircraft use existing GLBs, drones use the quadcopter GLB and all contacts use shared identification', async (t) => {
+test('aircraft use existing GLBs, uas use the quadcopter GLB and all contacts use shared identification', async (t) => {
   const f = fixture(t);
   await f.layer.enable(f.viewer);
   const time = f.viewer.clock.currentTime;
   const aircraft = f.viewer.dataSources.get(0).entities.values;
-  const drones = f.viewer.dataSources.get(1).entities.values;
+  const uas = f.viewer.dataSources.get(1).entities.values;
   assert.equal(aircraft[0].model.uri.getValue(time), '/models/airplane.glb');
   assert.equal(aircraft[2].model.uri.getValue(time), '/models/citation2.glb');
-  assert.equal(drones[0].model.uri.getValue(time), '/models/quadcopter.glb');
+  assert.equal(uas[0].model.uri.getValue(time), '/models/quadcopter.glb');
   assert.equal(aircraft[0].billboard, undefined);
   assert.equal(aircraft[0].point, undefined);
   assert.ok(f.viewer.dataSources.get(2).entities.values[0].point);
@@ -278,25 +278,25 @@ test('aircraft use existing GLBs, drones use the quadcopter GLB and all contacts
       .getDetectableObjects()
       .every((row) => row.id === '' && row.metric === ''),
   );
-  assert.equal(drones[0].model.scale.getValue(time), 2);
+  assert.equal(uas[0].model.scale.getValue(time), 2);
   f.api.setParams({ labels: true });
   f.api.seek(300);
   assert.equal(f.layer.contacts.getAllPositions().length, 6);
-  assert.equal(f.layer.contacts.trackById(drones[0].id), true);
+  assert.equal(f.layer.contacts.trackById(uas[0].id), true);
   const tracked = f.layer.contacts.getTrackedInfo();
-  assert.equal(tracked.category, 'drone');
+  assert.equal(tracked.category, 'uas');
   assert.equal(tracked.simulated, true);
   assert.equal(tracked.simulationTime, '2026-10-26T10:05:00Z');
   assert.ok(tracked.velocityMps >= 0);
   const proxy = f.viewer.trackedEntity;
   assert.equal(f.viewer.entities.contains(proxy), true);
   proxy.show = false; // Cockpit takes ownership and hides its source contact.
-  assert.equal(drones[0].model.show.getValue(time), false);
+  assert.equal(uas[0].model.show.getValue(time), false);
   assert.equal(
-    f.layer.getDetectableObjects().some((row) => row.sourceId === drones[0].id),
+    f.layer.getDetectableObjects().some((row) => row.sourceId === uas[0].id),
     false,
   );
-  assert.equal(f.layer.contacts.getTrackedInfo().icao24, drones[0].id);
+  assert.equal(f.layer.contacts.getTrackedInfo().icao24, uas[0].id);
   f.api.seek(500);
   assert.notEqual(f.layer.contacts.getTrackedInfo().latitude, tracked.latitude);
   await f.layer.disable();
@@ -384,7 +384,7 @@ test('scenario selection automatically frames its location and starts paused at 
   f.api.play();
   f.api.seek(300);
   f.viewer.camera.lastFlight = null;
-  await f.api.loadScenario('rotterdam-drones');
+  await f.api.loadScenario('rotterdam-uas');
   assert.ok(
     Cartesian3.equalsEpsilon(
       f.viewer.camera.lastFlight.destination,
@@ -406,7 +406,7 @@ test('external catalog defines the scenario list, default, asset location and ca
     t,
     async (url) => {
       calls.push(url);
-      return { ok: true, json: () => packets('drones.czml') };
+      return { ok: true, json: () => packets('uas.czml') };
     },
     async (url) => ({
       ok: true,
@@ -480,22 +480,22 @@ test('catalog failures surface the URL and cancelled catalog fetch cannot resurr
   assert.equal(f.viewer.dataSources.length, 0);
 });
 
-test('replay classification distinguishes civil, military and UAV contacts through tracking and seeks', async (t) => {
+test('replay classification distinguishes civil, military and UAS contacts through tracking and seeks', async (t) => {
   const f = fixture(t);
   await f.layer.enable(f.viewer);
   const aircraft = f.viewer.dataSources.get(0).entities.values;
-  const drone = f.viewer.dataSources.get(1).entities.values[0];
+  const uas = f.viewer.dataSources.get(1).entities.values[0];
   aircraft[1].properties.addProperty('military', true);
-  aircraft[2].properties.aircraftClass = new ConstantProperty('uav');
+  aircraft[2].properties.aircraftClass = new ConstantProperty('uas');
   aircraft[2].properties.addProperty('military', true);
   const tierFor = (entity) =>
     f.layer.getDetectableObjects().find((row) => row.sourceId === entity.id)
       .tier;
   assert.equal(tierFor(aircraft[0]), 'civil');
   assert.equal(tierFor(aircraft[1]), 'military');
-  assert.equal(tierFor(aircraft[2]), 'uav');
-  assert.equal(tierFor(drone), 'uav');
-  for (const entity of [aircraft[0], aircraft[1], aircraft[2], drone]) {
+  assert.equal(tierFor(aircraft[2]), 'uas');
+  assert.equal(tierFor(uas), 'uas');
+  for (const entity of [aircraft[0], aircraft[1], aircraft[2], uas]) {
     const tier = tierFor(entity);
     assert.equal(f.layer.contacts.trackById(entity.id), true);
     f.api.seek(300);
@@ -548,5 +548,40 @@ test('Rotterdam Apache is a military helicopter with a hover and bounded flight 
     const a = Cartesian3.fromDegrees(...samples.slice(i - 3, i));
     const b = Cartesian3.fromDegrees(...samples.slice(i + 1, i + 4));
     assert.ok(Cartesian3.distance(a, b) / (samples[i] - samples[i - 4]) < 80);
+  }
+});
+
+test('replay path colors share the palette and UAS legacy input remains compatible', async (t) => {
+  const { Color } = await import('cesium');
+  const { VEHICLE_PRESENTATION } =
+    await import('../../data/vehiclePresentation.js');
+  const f = fixture(t);
+  await f.layer.enable(f.viewer);
+  const aircraft = f.viewer.dataSources.get(0).entities.values;
+  const uas = f.viewer.dataSources.get(1).entities.values[0];
+  const time = f.viewer.clock.currentTime;
+  for (const [entity, tier] of [
+    [aircraft[0], 'civil'],
+    [aircraft.at(-1), 'military'],
+    [uas, 'uas'],
+  ]) {
+    const actual = entity.path.material.getValue(time).color;
+    const expected = Color.fromCssColorString(
+      VEHICLE_PRESENTATION[tier].path,
+    ).withAlpha(0.67);
+    assert.ok(Color.equals(actual, expected));
+  }
+  for (const alias of ['drone', 'uav']) {
+    uas.properties.vehicleCategory = new ConstantProperty(alias);
+    f.layer.contacts.style(uas);
+    assert.equal(f.layer.contacts.describe(uas).category, 'uas');
+    assert.equal(f.layer.contacts.describe(uas).tier, 'uas');
+    assert.equal(uas.model.uri.getValue(time), '/models/quadcopter.glb');
+    assert.ok(
+      Color.equals(
+        uas.path.material.getValue(time).color,
+        Color.fromCssColorString(VEHICLE_PRESENTATION.uas.path).withAlpha(0.67),
+      ),
+    );
   }
 });

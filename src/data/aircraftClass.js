@@ -338,9 +338,9 @@ const BIZJET = new Set([
   'WW24',
   'SF50', // Cirrus Vision Jet — a JET (was mis-set in LIGHT before the bizjet class existed)
 ]);
-// GEV addition (2026-08-15 Hangar fleet): large UAVs — ICAO designators seen on
+// GEV addition (2026-08-15 Hangar fleet): large UAS — ICAO designators seen on
 // ADS-B/adsb.lol for Predator/Reaper/Global Hawk-class airframes.
-const UAV = new Set([
+const UAS = new Set([
   'Q1',
   'Q4',
   'Q9',
@@ -421,7 +421,7 @@ export function classifyAircraft({ typeCode, category } = {}) {
     .toUpperCase();
   if (code) {
     if (FASTJET.has(code)) return 'fastjet';
-    if (UAV.has(code)) return 'uav';
+    if (UAS.has(code)) return 'uas';
     if (HELI.has(code)) return 'helicopter';
     if (QUAD.has(code)) return 'quadjet';
     if (WIDE.has(code)) return 'widebody';
@@ -451,7 +451,7 @@ export const AIRCRAFT_CLASS_LABELS = Object.freeze({
   helicopter: msg('Helicopter'),
   fastjet: msg('Fast jet'),
   bizjet: msg('Business jet'),
-  uav: msg('Drone'),
+  uas: msg('UAS'),
 });
 
 /** Billboard scale multipliers (skylight GLYPH_SCALE, + fastjet). */
@@ -465,7 +465,7 @@ export const CLASS_SCALE_2D = {
   helicopter: 0.82,
   fastjet: 0.8,
   bizjet: 0.72,
-  uav: 0.75,
+  uas: 0.75,
 };
 
 /** 3D model scale multipliers — clamped [0.75, 1.45] while every class shares
@@ -481,7 +481,7 @@ export const CLASS_SCALE_3D = {
   helicopter: 0.8,
   fastjet: 0.8,
   bizjet: 0.8,
-  uav: 0.8,
+  uas: 0.8,
 };
 
 /** Per-class glTF — all the shared airplane today; drop real assets in here.
@@ -497,7 +497,7 @@ export const CLASS_MODEL_URL = {
   helicopter: '/models/airplane.glb',
   fastjet: '/models/airplane.glb',
   bizjet: '/models/airplane.glb',
-  uav: '/models/airplane.glb',
+  uas: '/models/airplane.glb',
 };
 
 /** Real per-class GLBs (2026-08-15 Hangar fleet, owner picks; CC-BY 4.0 —
@@ -514,7 +514,7 @@ export const CLASS_MODEL_REAL = {
   helicopter: { url: '/models/bell206.glb', bellyM: 1.66, radiusM: 8.24 },
   light: { url: '/models/c172.glb', bellyM: 1.36, radiusM: 7.0 },
   bizjet: { url: '/models/citation2.glb', bellyM: 2.86, radiusM: 11.24 },
-  uav: { url: '/models/mq9.glb', bellyM: 2.02, radiusM: 12.0 },
+  uas: { url: '/models/mq9.glb', bellyM: 2.02, radiusM: 12.0 },
   widebody: { url: '/models/b789.glb', bellyM: 7.81, radiusM: 44.08 },
   turboprop: { url: '/models/atr72.glb', bellyM: 3.81, radiusM: 19.49 },
 };

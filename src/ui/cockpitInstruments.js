@@ -1,3 +1,7 @@
+import {
+  applyCockpitVehiclePresentation,
+  vehicleTier,
+} from '../data/vehiclePresentation.js';
 /** Instrument values, routes and vision controls for the Cockpit controller. */
 import { formatNumber, t } from '../i18n/index.js';
 import {
@@ -124,6 +128,7 @@ export function updateHud(
   forceContext = false,
 ) {
   this.lastAircraftInfo = info;
+  applyCockpitVehiclePresentation(this.hud, info);
   const heading = normalizeHeading(this.heading ?? info.track ?? 0);
   if (this.callsign) {
     this.callsign.textContent =
@@ -198,14 +203,15 @@ export function updateHud(
           : info.simulated
             ? t('Simulated Traffic').toUpperCase()
             : t('LIVE TRACK');
-    const aircraftClass = info.simulated
-      ? (info.category === 'drone'
-          ? t('Aerial drones')
-          : t('Aircraft')
-        ).toUpperCase()
-      : info.layerId === 'military'
-        ? t('MILITARY')
-        : t('COMMERCIAL');
+    const tier = vehicleTier(info);
+    const aircraftClass =
+      tier === 'uas'
+        ? t('UAS')
+        : tier === 'military'
+          ? t('MILITARY')
+          : info.simulated
+            ? t('Aircraft').toUpperCase()
+            : t('COMMERCIAL');
     const emergency = formatCockpitEmergency(
       info.emergency,
       LOCALIZED_EMERGENCY,

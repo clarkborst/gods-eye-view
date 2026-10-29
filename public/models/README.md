@@ -21,7 +21,7 @@ identified. These credits do not imply endorsement by the original creators.
 
 ## Original simulation quadcopter
 
-`quadcopter.glb` is an original procedural survey-drone model created for this
+`quadcopter.glb` is an original procedural survey UAS model created for this
 project and covered by the repository's MIT license. It contains no third-party
 geometry, textures or external resources. It includes four motors and propellers,
 landing struts, a battery, a forward camera, an underslung survey camera and

@@ -1,3 +1,4 @@
+import { vehicleTier } from '../../data/vehiclePresentation.js';
 import { displayedKinematics } from '../../data/motionModel.js';
 import { t } from '../../i18n/index.js';
 import * as Cesium from 'cesium';
@@ -111,6 +112,8 @@ export function createQueries({
     );
     if (!carto) return null;
     return {
+      aircraftClass: tr3bAircraftClass(icao24, info?.klass || null),
+      military: true,
       icao24,
       callsign: _toCleanText(info?.callsign) || null,
       // Additive: the label chain's middle link, trimmed like `callsign`, so
@@ -476,6 +479,10 @@ export function createQueries({
           };
           flightState._detectionObjects.set(icao24, object);
         }
+        object.tier = vehicleTier({
+          aircraftClass: info?.klass,
+          military: true,
+        });
         // WELD (mirror of flights.js): anchor to whatever owns the visual. Model-owned
         // contacts read the translation the fleet tick already wrote into their
         // modelMatrix; sprite-owned contacts keep `bb.position`, where sprite and bracket

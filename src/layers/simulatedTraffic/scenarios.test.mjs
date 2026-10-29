@@ -13,7 +13,7 @@ const descriptor = (id = 'tokyo') => ({
     heading: 75,
     pitch: -45,
   },
-  files: ['vehicles.czml', '../shared/drones.czml'],
+  files: ['vehicles.czml', '../shared/uas.czml'],
 });
 function repository(documents, signal) {
   const calls = [];
@@ -53,7 +53,7 @@ test('catalog order, global location, authored names and deployment-relative ass
   assert.deepEqual(result.scenarios[0].view, descriptor().view);
   assert.deepEqual(result.scenarios[0].files, [
     'https://example.com/app/scenarios/tokyo/vehicles.czml',
-    'https://example.com/app/scenarios/shared/drones.czml',
+    'https://example.com/app/scenarios/shared/uas.czml',
   ]);
   assert.ok(repo.calls.every(([, signal]) => signal === controller.signal));
 });

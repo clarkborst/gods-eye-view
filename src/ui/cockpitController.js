@@ -1,3 +1,4 @@
+import { applyCockpitVehiclePresentation } from '../data/vehiclePresentation.js';
 /** Coordinate Cockpit lifecycle through supplied aircraft, terrain, rendering and briefing operations. */
 import {
   readAircraftInfo,
@@ -84,6 +85,7 @@ export class CockpitViewController {
     this.mapViewButton = document.getElementById('map-view-switch');
     this.resetGlobeButton = document.getElementById('cockpit-reset-globe');
     this.hud = document.getElementById('cockpit-hud');
+    applyCockpitVehiclePresentation(this.hud, {});
     this.entryFocusOrigin = null;
     this.callsign = document.getElementById('cockpit-callsign');
     this.speed = document.getElementById('cockpit-speed-value');

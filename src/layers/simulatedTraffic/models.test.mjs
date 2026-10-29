@@ -38,7 +38,7 @@ test('model selection reuses the existing aircraft fleet and the original quadco
     '/models/airplane.glb',
   );
   assert.equal(
-    simulationModelSpec('drone', 'uav').url,
+    simulationModelSpec('uas', 'uas').url,
     '/models/quadcopter.glb',
   );
 });
@@ -93,7 +93,7 @@ test('a hovering vehicle has a valid pose with its nose on the authored heading'
   assert.ok(Cesium.Cartesian3.dot(direction(pose), east) > 0.999);
 });
 
-test('the quadcopter GLB is self-contained with valid mesh bounds at drone scale', async () => {
+test('the quadcopter GLB is self-contained with valid mesh bounds at uas scale', async () => {
   const bytes = await readFile(
     new URL('../../../public/models/quadcopter.glb', import.meta.url),
   );

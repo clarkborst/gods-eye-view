@@ -1,8 +1,8 @@
 {
   "$schema": "../scenario.schema.json",
   "version": 1,
-  "id": "rotterdam-drones",
-  "name": "Rotterdam · drones",
+  "id": "rotterdam-uas",
+  "name": "Rotterdam · UAS",
   "description": "Synthetic traffic around Rotterdam The Hague Airport.",
   "view": {
     "longitude": 4.437,
@@ -12,6 +12,6 @@
     "pitch": -90
   },
   "files": [
-    "drones.czml"
+    "uas.czml"
   ]
 }

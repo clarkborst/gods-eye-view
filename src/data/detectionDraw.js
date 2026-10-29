@@ -8,7 +8,7 @@
  * GPU/MSDF renderer. The Canvas2D overlay (detection.js) imports these and
  * supplies the actual drawing surface.
  */
-import { REPLAY_DETECTION_COLORS } from '../overlays/worldOverlayTokens.js';
+import { VEHICLE_PRESENTATION } from './vehiclePresentation.js';
 import { formatNumber, t } from '../i18n/index.js';
 
 /** @constant {number} Max characters shown for a label's primary (id) line. */
@@ -146,7 +146,7 @@ export function resolveTier(obj) {
 export function resolveDetectionColor(obj, theme) {
   const tier = resolveTier(obj);
   return (
-    (obj?.simulated && REPLAY_DETECTION_COLORS[tier]) ||
+    (obj?.simulated && VEHICLE_PRESENTATION[tier]?.detection) ||
     theme.tiers?.[tier] ||
     theme.line
   );

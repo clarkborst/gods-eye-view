@@ -1,3 +1,4 @@
+import { VEHICLE_PRESENTATION } from '../../data/vehiclePresentation.js';
 import * as Cesium from 'cesium';
 import { EMERGENCY_TINT_CSS } from '../../data/aircraftEmergency.js';
 
@@ -28,7 +29,9 @@ export const BILLBOARD_SCALE = 0.7;
 
 /** @constant {Cesium.Color} Default amber tint for untracked military billboards */
 
-export const MIL_ICON_COLOR = Cesium.Color.fromCssColorString('#FFB800');
+export const MIL_ICON_COLOR = Cesium.Color.fromCssColorString(
+  VEHICLE_PRESENTATION.military.detection,
+);
 
 /** @constant {Cesium.Color} Lighter amber tint applied to the actively tracked aircraft */
 
@@ -168,7 +171,7 @@ export const TRACKED_BILLBOARD_SCALE_BY_DISTANCE = new Cesium.NearFarScalar(
 
 /** @constant {string} Military trail hue (PRD F4, pinned). */
 
-export const TRAIL_COLOR = '#FFB800';
+export const TRAIL_COLOR = VEHICLE_PRESENTATION.military.path;
 
 /** @constant {number} Combined cap on trail vertices (backfill + live accumulation). */
 

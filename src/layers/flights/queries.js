@@ -1,3 +1,4 @@
+import { vehicleTier } from '../../data/vehiclePresentation.js';
 import { approxDistanceKm as _approxDistanceKm } from './recordPolicy.js';
 import { displayedKinematics } from '../../data/motionModel.js';
 import * as Cesium from 'cesium';
@@ -149,6 +150,8 @@ export function createQueries({
     );
     if (!carto) return null;
     return {
+      aircraftClass: tr3bAircraftClass(icao24, info?.klass || null),
+      military: isMilitaryIcao(icao24),
       icao24,
       callsign: String(info?.callsign || '').trim() || null,
       position: Cesium.Cartesian3.clone(basePos),
@@ -465,6 +468,10 @@ export function createQueries({
           };
           flightState._detectionObjects.set(icao24, object);
         }
+        object.tier = vehicleTier({
+          aircraftClass: info?.klass,
+          military: isMilitaryIcao(icao24),
+        });
         // WELD: anchor to whatever actually owns the visual. A model-owned contact is
         // read straight off the translation the fleet tick already wrote into its
         // modelMatrix, so bracket and label sit on the aircraft you can see instead of

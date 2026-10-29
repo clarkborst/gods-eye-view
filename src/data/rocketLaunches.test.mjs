@@ -738,7 +738,7 @@ test('normalizes detailed payload and stage recovery records', () => {
           attempt: true,
           success: true,
           downrange_distance: 610,
-          type: { name: 'Autonomous Spaceport Drone Ship' },
+          type: { name: 'Autonomous Spaceport UAS Ship' },
           landing_location: {
             name: 'A Shortfall of Gravitas',
             latitude: '30.1',

@@ -5,7 +5,7 @@
   "scenarios": [
     "rotterdam/mixed.json",
     "rotterdam/aircraft.json",
-    "rotterdam/drones.json",
+    "rotterdam/uas.json",
     "rotterdam/ground.json"
   ]
 }

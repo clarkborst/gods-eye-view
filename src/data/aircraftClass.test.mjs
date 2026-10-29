@@ -14,16 +14,16 @@ test('type-code classification (military layer path)', () => {
   assert.equal(classifyAircraft({ typeCode: 'b738' }), 'airliner'); // case-insensitive default-jet
 });
 
-test('bizjet + uav classes (2026-08-16 Hangar fleet)', () => {
+test('bizjet + uas classes (2026-08-16 Hangar fleet)', () => {
   assert.equal(classifyAircraft({ typeCode: 'C25A' }), 'bizjet');
   assert.equal(classifyAircraft({ typeCode: 'C56X' }), 'bizjet');
   assert.equal(classifyAircraft({ typeCode: 'GLF5' }), 'bizjet');
   assert.equal(classifyAircraft({ typeCode: 'CL60' }), 'bizjet');
   // SF50 Cirrus Vision Jet is a JET — it must NOT fall back to the light/prop class.
   assert.equal(classifyAircraft({ typeCode: 'SF50' }), 'bizjet');
-  assert.equal(classifyAircraft({ typeCode: 'MQ9' }), 'uav');
-  assert.equal(classifyAircraft({ typeCode: 'Q4' }), 'uav');
-  assert.equal(classifyAircraft({ typeCode: 'TB2' }), 'uav');
+  assert.equal(classifyAircraft({ typeCode: 'MQ9' }), 'uas');
+  assert.equal(classifyAircraft({ typeCode: 'Q4' }), 'uas');
+  assert.equal(classifyAircraft({ typeCode: 'TB2' }), 'uas');
 });
 
 test('category fallback (flights layer path — OpenSky extended int)', () => {
@@ -49,7 +49,7 @@ test('typeCode outranks category; unknown → airliner', () => {
 });
 
 test('scale/url tables cover every class', () => {
-  for (const kind of ['light','glider','turboprop','airliner','widebody','quadjet','helicopter','fastjet','bizjet','uav']) {
+  for (const kind of ['light','glider','turboprop','airliner','widebody','quadjet','helicopter','fastjet','bizjet','uas']) {
     assert.ok(Number.isFinite(CLASS_SCALE_2D[kind]), kind);
     assert.ok(CLASS_SCALE_3D[kind] >= 0.75 && CLASS_SCALE_3D[kind] <= 1.45, kind);
     assert.ok(typeof CLASS_MODEL_URL[kind] === 'string', kind);

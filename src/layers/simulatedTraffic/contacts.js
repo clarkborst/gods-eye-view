@@ -1,5 +1,9 @@
 import * as Cesium from 'cesium';
-import { REPLAY_DETECTION_COLORS } from '../../overlays/worldOverlayTokens.js';
+import {
+  VEHICLE_PRESENTATION,
+  normalizeAircraftKind,
+  vehicleTier,
+} from '../../data/vehiclePresentation.js';
 import { classifyAircraft } from '../../data/aircraftClass.js';
 import { applyTrackedCameraFrame } from '../../data/trackedCamera.js';
 import {
@@ -37,23 +41,19 @@ export function createSimulationContacts({
   let modelScale = 1;
   const detectionObjects = new Map();
   const air = (entity, time) =>
-    ['aircraft', 'drone'].includes(entityCategory(entity, time));
+    ['aircraft', 'uas'].includes(entityCategory(entity, time));
   const value = (entity, key, time) => entity.properties?.[key]?.getValue(time);
   const classification = (entity, time) => {
     const category = entityCategory(entity, time);
     const aircraftClass =
-      category === 'drone'
-        ? 'uav'
-        : value(entity, 'aircraftClass', time) ||
+      category === 'uas'
+        ? 'uas'
+        : normalizeAircraftKind(value(entity, 'aircraftClass', time)) ||
           classifyAircraft({ typeCode: value(entity, 'typeCode', time) });
     const military = value(entity, 'military', time) === true;
     const tier = !air(entity, time)
       ? 'vehicle'
-      : aircraftClass === 'uav'
-        ? 'uav'
-        : military
-          ? 'military'
-          : 'civil';
+      : vehicleTier({ aircraftClass, military });
     return { aircraftClass, military, tier };
   };
   const emit = (type, detail) => {
@@ -148,12 +148,23 @@ export function createSimulationContacts({
     style(entity) {
       const viewer = getViewer();
       const time = viewer.clock.currentTime;
+      if (entity.path && air(entity, time)) {
+        entity.path.material = new Cesium.ColorMaterialProperty(
+          new Cesium.CallbackProperty(
+            (at) =>
+              Cesium.Color.fromCssColorString(
+                VEHICLE_PRESENTATION[classification(entity, at).tier].path,
+              ).withAlpha(0.67),
+            false,
+          ),
+        );
+      }
       // The shared identification overlay owns labels for every replay vehicle.
       if (entity.label) entity.label.show = false;
       if (!entity.position || !air(entity, time)) return;
       const category = entityCategory(entity, time);
       const kind =
-        value(entity, 'aircraftClass', time) ||
+        normalizeAircraftKind(value(entity, 'aircraftClass', time)) ||
         classifyAircraft({ typeCode: value(entity, 'typeCode', time) });
       const spec = simulationModelSpec(category, kind);
       entity.point = undefined;
@@ -340,7 +351,7 @@ export function createSimulationContacts({
         proxy.gevLabelModel = {
           title: info.callsign,
           details: [info.source],
-          accent: REPLAY_DETECTION_COLORS[info.tier],
+          accent: VEHICLE_PRESENTATION[info.tier]?.detection,
         };
       }
       proxy.gevSelectionOrigin = origin;

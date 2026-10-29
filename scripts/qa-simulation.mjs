@@ -131,7 +131,7 @@ try {
   checkingSimulation = true;
   assert.deepEqual(
     (await state()).categories.map((c) => c.id),
-    ['aircraft', 'drone', 'ground-robot'],
+    ['aircraft', 'uas', 'ground-robot'],
   );
   await page.click(`${panel} > button`); // Airport overview.
   await page.waitForFunction(
@@ -347,7 +347,7 @@ try {
   assert.ok(isolation.snapshot);
   for (const id of [
     'sim:rotterdam:airliner-departure',
-    'sim:rotterdam:inspection-uav',
+    'sim:rotterdam:inspection-uas',
   ]) {
     await page.select(
       `${panel} select[aria-label="Follow simulated vehicle"]`,

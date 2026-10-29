@@ -1882,7 +1882,6 @@
    concentric scanner is line-only so the optical center and target labels stay
    readable; controls and source-backed telemetry remain at the perimeter. */
 :root[data-ui-theme='cyber'] body.cockpit-mode #cockpit-hud {
-  --cockpit-accent: #69cbd1;
   --cockpit-caution: #c45454;
   --cockpit-side-panel-width: min(294px, 23vw);
   color: #e9f2f2;

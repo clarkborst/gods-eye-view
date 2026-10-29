@@ -28,9 +28,9 @@ function fixture() {
     },
     getStats: () => ({ count: 5 }),
     contacts: {
-      getAllPositions: () => [{ id: 'sim-plane' }, { id: 'sim-drone' }],
-      getNearby: () => [{ id: 'sim-drone' }],
-      getTrackedInfo: () => ({ id: 'sim-drone', simulated: true }),
+      getAllPositions: () => [{ id: 'sim-plane' }, { id: 'sim-uas' }],
+      getNearby: () => [{ id: 'sim-uas' }],
+      getTrackedInfo: () => ({ id: 'sim-uas', simulated: true }),
     },
   };
   const services = createSimulationContactServices({
@@ -56,7 +56,7 @@ test('Context reads CZML contacts exclusively even when disabled live sources re
   f.setActive(true);
   assert.deepEqual(
     f.services.flights.getAllPositions().map((row) => row.id),
-    ['sim-plane', 'sim-drone'],
+    ['sim-plane', 'sim-uas'],
   );
   assert.equal(f.services.flights.getTrackedInfo().simulated, true);
   for (const source of ['military', 'vessels', 'installations']) {

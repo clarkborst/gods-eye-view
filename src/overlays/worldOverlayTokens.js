@@ -1,3 +1,5 @@
+import { VEHICLE_PRESENTATION } from '../data/vehiclePresentation.js';
+
 /**
  * @module worldOverlayTokens
  * @description Visual constants shared by the world-overlay host, painters,
@@ -104,12 +106,6 @@ export const SKY_PLATE_SCALE = 0.22;
  * Each keeps its theme's hue so a plate reads as amber/green/thermal chrome
  * rather than a neutral box dropped on top of the sensor image.
  */
-export const REPLAY_DETECTION_COLORS = Object.freeze({
-  civil: '#22e0ff',
-  military: '#ffb347',
-  uav: '#ff00ff',
-});
-
 export const DETECTION_THEME_MAP = Object.freeze({
   retro: {
     line: 'rgba(255, 176, 56, 0.88)',
@@ -124,9 +120,9 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.08) saturate(1.04)',
     scanline: 0.085,
     tiers: {
-      civil: '#ffd27a',
-      uav: '#ff00ff',
-      military: '#ff8a3c',
+      civil: VEHICLE_PRESENTATION.civil.detection,
+      uas: VEHICLE_PRESENTATION.uas.detection,
+      military: VEHICLE_PRESENTATION.military.detection,
       sea: '#ffc06a',
       space: '#ffe0a0',
       vehicle: '#d0a060',
@@ -155,9 +151,9 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.12) saturate(1.12)',
     scanline: 0.09,
     tiers: {
-      civil: '#8fe89a',
-      uav: '#ff00ff',
-      military: '#ff5a47',
+      civil: VEHICLE_PRESENTATION.civil.detection,
+      uas: VEHICLE_PRESENTATION.uas.detection,
+      military: VEHICLE_PRESENTATION.military.detection,
       sea: '#a6f0c0',
       space: '#9fe8ff',
       vehicle: '#ffc24a',
@@ -186,9 +182,9 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.1) saturate(1.08)',
     scanline: 0.04,
     tiers: {
-      civil: '#ffffff',
-      uav: '#ff00ff',
-      military: '#ff7a5c',
+      civil: VEHICLE_PRESENTATION.civil.detection,
+      uas: VEHICLE_PRESENTATION.uas.detection,
+      military: VEHICLE_PRESENTATION.military.detection,
       sea: '#ffd0b0',
       space: '#d0e0ff',
       vehicle: '#ffcf9f',
@@ -217,9 +213,9 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.05) saturate(1.05)',
     scanline: 0.05,
     tiers: {
-      civil: '#22e0ff',
-      uav: '#ff00ff',
-      military: '#ffb347',
+      civil: VEHICLE_PRESENTATION.civil.detection,
+      uas: VEHICLE_PRESENTATION.uas.detection,
+      military: VEHICLE_PRESENTATION.military.detection,
       sea: '#3fe0c8',
       space: '#bda4ff',
       vehicle: '#8fa6b4',

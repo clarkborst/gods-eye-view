@@ -212,7 +212,7 @@ test('replay identity colors override sensor themes while live tiers retain thei
     for (const [tier, color] of Object.entries({
       civil: '#22e0ff',
       military: '#ffb347',
-      uav: '#ff00ff',
+      uas: '#ff00ff',
     })) {
       assert.equal(
         resolveDetectionColor({ type: 'AIR', tier, simulated: true }, theme),

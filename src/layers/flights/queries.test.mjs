@@ -22,7 +22,7 @@ function fixture() {
   let formats = 0;
   const services = {
     aircraftPresentation: {},
-    militaryRegistry: {},
+    militaryRegistry: { isMilitaryIcao: () => false },
     camera: {},
     focus: {},
     recession: {},
@@ -146,4 +146,13 @@ test('tracked ownership and live anchors remain independent of fleet models', ()
   f.flightState._trackedModel = { ready: true, show: true };
   f.parts.tracking._trackedModelRegimeActive = () => false;
   assert.equal(f.parts.rendering._modelOwnsVisual('abc123', null), false);
+});
+
+
+test('live detection tiers distinguish civil, military and UAS identities', () => {
+  const f = fixture();
+  f.info.klass = 'uas';
+  assert.equal(f.queries.getDetectableObjects()[0].tier, 'uas');
+  f.info.klass = 'airliner';
+  assert.equal(f.queries.getDetectableObjects()[0].tier, 'civil');
 });

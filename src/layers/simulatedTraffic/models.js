@@ -1,9 +1,10 @@
 import * as Cesium from 'cesium';
+import { normalizeAircraftKind } from '../../data/vehiclePresentation.js';
 import { CLASS_MODEL_REAL, CLASS_MODEL_URL } from '../../data/aircraftClass.js';
 
 /** All bundled models use metres, glTF +Y up and a nose along local -X. */
 export function simulationModelSpec(category, aircraftClass) {
-  if (category === 'drone')
+  if (normalizeAircraftKind(category) === 'uas')
     return {
       url: '/models/quadcopter.glb',
       minimumPixelSize: 28,
@@ -11,8 +12,8 @@ export function simulationModelSpec(category, aircraftClass) {
     };
   return {
     url:
-      CLASS_MODEL_REAL[aircraftClass]?.url ||
-      CLASS_MODEL_URL[aircraftClass] ||
+      CLASS_MODEL_REAL[normalizeAircraftKind(aircraftClass)]?.url ||
+      CLASS_MODEL_URL[normalizeAircraftKind(aircraftClass)] ||
       CLASS_MODEL_URL.airliner,
     minimumPixelSize: 40,
     maximumScale: 64,

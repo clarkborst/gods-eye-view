@@ -223,9 +223,9 @@ const BODIES = {
     <circle cx="28" cy="21" r="5.2" fill="#ffffff"/>
     <circle cx="0" cy="6" r="3.6" fill="#ffffff" fill-opacity="0.82"/>`,
 
-  // Large UAV (Reaper-class) — bulbous sensor nose, very long slender
+  // Large UAS (Reaper-class) — bulbous sensor nose, very long slender
   // straight wings, slim tail boom, canted V-tail.
-  uav: `
+  uas: `
     <path d="M0,-40
              C 3.6,-40 4.6,-35 4.4,-30
              L 2.4,-12

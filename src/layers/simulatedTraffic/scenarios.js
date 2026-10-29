@@ -1,6 +1,10 @@
+import { normalizeAircraftKind } from '../../data/vehiclePresentation.js';
+
 /** Vehicle categories stay in CZML, independent of the scenario catalog. */
 export function entityCategory(entity, time) {
-  return String(entity.properties?.vehicleCategory?.getValue(time) || 'other');
+  return normalizeAircraftKind(
+    String(entity.properties?.vehicleCategory?.getValue(time) || 'other'),
+  );
 }
 
 function requireValue(condition, message) {
